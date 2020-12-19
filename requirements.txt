@@ -1,0 +1,5 @@
+configparse
+confluent_kafka
+ess_streaming_data_types
+h5py
+numpy
