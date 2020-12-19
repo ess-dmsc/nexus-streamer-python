@@ -3,6 +3,13 @@ from typing import Union, Tuple, Dict, List
 from nexus_streamer.data_source import LogDataSource, EventDataSource
 
 
+def get_attr_as_str(h5_object, attribute_name: str):
+    try:
+        return h5_object.attrs[attribute_name].decode("utf8")
+    except AttributeError:
+        return h5_object.attrs[attribute_name]
+
+
 def find_by_nx_class(
     nx_class_names: Tuple[str, ...], root: Union[h5py.File, h5py.Group]
 ) -> Dict[str, h5py.Group]:
@@ -13,10 +20,10 @@ def find_by_nx_class(
     def _match_nx_class(_, h5_object):
         if isinstance(h5_object, h5py.Group):
             try:
-                if h5_object.attrs["NX_class"] in nx_class_names:
-                    groups_with_requested_nx_class[h5_object.attrs["NX_class"]].append(
-                        h5_object
-                    )
+                if get_attr_as_str(h5_object, "NX_class") in nx_class_names:
+                    groups_with_requested_nx_class[
+                        get_attr_as_str(h5_object, "NX_class")
+                    ].append(h5_object)
             except AttributeError:
                 pass
 
