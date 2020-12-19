@@ -1,6 +1,6 @@
 from time import time_ns
 import asyncio
-from data_source import LogDataSource, EventDataSource
+from nexus_streamer.data_source import LogDataSource, EventDataSource
 from nexus_streamer.publisher import LogDataPublisher, EventDataPublisher
 from typing import Optional, Any
 
