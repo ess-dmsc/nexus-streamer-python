@@ -4,20 +4,17 @@ from data_source import DataSource, LogDataSource, EventDataSource
 
 
 def find_by_nx_class(
-        nx_class_names: Tuple[str, ...],
-        root: Union[h5py.File, h5py.Group]) -> Dict[str, h5py.Group]:
-    groups_with_requested_nx_class = {
-        class_name: []
-        for class_name in nx_class_names
-    }
+    nx_class_names: Tuple[str, ...], root: Union[h5py.File, h5py.Group]
+) -> Dict[str, h5py.Group]:
+    groups_with_requested_nx_class = {class_name: [] for class_name in nx_class_names}
 
     def _match_nx_class(_, h5_object):
         if isinstance(h5_object, h5py.Group):
             try:
-                if h5_object.attrs["NX_class"].decode(
-                        "utf8") in nx_class_names:
-                    groups_with_requested_nx_class[h5_object.attrs[
-                        "NX_class"].decode("utf8")].append(h5_object)
+                if h5_object.attrs["NX_class"].decode("utf8") in nx_class_names:
+                    groups_with_requested_nx_class[
+                        h5_object.attrs["NX_class"].decode("utf8")
+                    ].append(h5_object)
             except AttributeError:
                 pass
 
