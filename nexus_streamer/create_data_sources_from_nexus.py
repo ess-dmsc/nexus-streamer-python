@@ -1,6 +1,6 @@
 import h5py
 from typing import Union, Tuple, Dict, List
-from nexus_streamer.data_source import DataSource, LogDataSource, EventDataSource
+from nexus_streamer.data_source import LogDataSource, EventDataSource
 
 
 def find_by_nx_class(
@@ -13,10 +13,10 @@ def find_by_nx_class(
     def _match_nx_class(_, h5_object):
         if isinstance(h5_object, h5py.Group):
             try:
-                if h5_object.attrs["NX_class"].decode("utf8") in nx_class_names:
-                    groups_with_requested_nx_class[
-                        h5_object.attrs["NX_class"].decode("utf8")
-                    ].append(h5_object)
+                if h5_object.attrs["NX_class"] in nx_class_names:
+                    groups_with_requested_nx_class[h5_object.attrs["NX_class"]].append(
+                        h5_object
+                    )
             except AttributeError:
                 pass
 
@@ -24,11 +24,12 @@ def find_by_nx_class(
     return groups_with_requested_nx_class
 
 
-def create_data_sources_from_nexus_file(nexus_file: h5py.File) -> List[DataSource]:
+def create_data_sources_from_nexus_file(
+    nexus_file: h5py.File,
+) -> Tuple[List[LogDataSource], List[EventDataSource]]:
     nx_log = "NXlog"
     nx_event_data = "NXevent_data"
     groups = find_by_nx_class((nx_log, nx_event_data), nexus_file)
-    data_sources: List[DataSource]
-    data_sources = [LogDataSource(group) for group in groups[nx_log]]
-    data_sources.extend([EventDataSource(group) for group in groups[nx_event_data]])
-    return data_sources
+    return [LogDataSource(group) for group in groups[nx_log]], [
+        EventDataSource(group) for group in groups[nx_event_data]
+    ]

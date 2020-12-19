@@ -1,6 +1,6 @@
 from nexus_streamer.data_chunk import LogDataChunk, EventDataChunk
 import h5py
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class LogDataSource:
@@ -10,8 +10,15 @@ class LogDataSource:
         """
         self._group = group
 
-    def get_data(self) -> Tuple[LogDataChunk, int]:
-        pass
+    def get_data(self) -> Tuple[Optional[LogDataChunk], int]:
+        """
+        Returns None instead of a data chunk when there is no more data
+        """
+        return None, 0
+
+    @property
+    def name(self):
+        return self._group.name
 
 
 class EventDataSource:
@@ -21,5 +28,12 @@ class EventDataSource:
         """
         self._group = group
 
-    def get_data(self) -> Tuple[EventDataChunk, int]:
-        pass
+    def get_data(self) -> Tuple[Optional[EventDataChunk], int]:
+        """
+        Returns None instead of a data chunk when there is no more data
+        """
+        return None, 0
+
+    @property
+    def name(self):
+        return self._group.name

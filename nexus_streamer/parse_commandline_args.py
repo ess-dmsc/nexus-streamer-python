@@ -89,6 +89,30 @@ def parse_args():
         default="Error",
         env_var="VERBOSITY",
     )
+    parser.add_argument(
+        "-f",
+        "--filename",
+        required=True,
+        help="NeXus file to stream data from",
+        env_var="FILENAME",
+    )
+    parser.add_argument(
+        "-b",
+        "--broker",
+        required=True,
+        help="<host[:port]> Kafka broker to forward data into",
+        type=str,
+        env_var="BROKER",
+    )
+    parser.add_argument(
+        "-i",
+        "--instrument",
+        required=True,
+        help="Used as prefix for topic names",
+        type=str,
+        env_var="INSTRUMENT",
+    )
+
     optargs = parser.parse_args()
     optargs.verbosity = log_choice_to_enum[optargs.verbosity]
     return optargs

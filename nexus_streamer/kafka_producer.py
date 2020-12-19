@@ -1,7 +1,6 @@
 import confluent_kafka
 from threading import Thread
 from nexus_streamer.application_logger import setup_logger
-from typing import Optional
 import asyncio
 
 
@@ -28,8 +27,6 @@ class KafkaProducer:
         self,
         topic: str,
         payload: bytes,
-        timestamp_ms: int,
-        key: Optional[str] = None,
     ):
         def ack(err, _):
             if err:
@@ -38,9 +35,7 @@ class KafkaProducer:
         sent_to_producer_buffer = False
         while not sent_to_producer_buffer:
             try:
-                self._producer.produce(
-                    topic, payload, key=key, on_delivery=ack, timestamp=timestamp_ms
-                )
+                self._producer.produce(topic, payload, on_delivery=ack)
                 self._producer.poll(0)
                 sent_to_producer_buffer = True
             except BufferError:

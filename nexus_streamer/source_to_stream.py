@@ -2,7 +2,7 @@ from time import time_ns
 import asyncio
 from nexus_streamer.data_source import LogDataSource, EventDataSource
 from nexus_streamer.publisher import LogDataPublisher, EventDataPublisher
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 
 class LogSourceToStream:
@@ -39,6 +39,10 @@ class LogSourceToStream:
             if self._publish_data is not None:
                 self._publish_data.cancel()
 
+    @property
+    def done(self):
+        return self._cancelled
+
     async def _publish_loop(self):
         last_timestamp_ns = 0
         while not self._cancelled:
@@ -46,7 +50,11 @@ class LogSourceToStream:
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
                 data, last_timestamp_ns = self._data_source.get_data()
-                self._publisher.publish(data, self._source_name)
+                if data is not None:
+                    self._publisher.publish(data, self._source_name)
+                else:
+                    self._cancelled = True
+                    break
 
 
 class EventSourceToStream:
@@ -83,6 +91,10 @@ class EventSourceToStream:
             if self._publish_data is not None:
                 self._publish_data.cancel()
 
+    @property
+    def done(self):
+        return self._cancelled
+
     async def _publish_loop(self):
         last_timestamp_ns = 0
         while not self._cancelled:
@@ -90,4 +102,11 @@ class EventSourceToStream:
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
                 data, last_timestamp_ns = self._data_source.get_data()
-                self._publisher.publish(data, self._source_name)
+                if data is not None:
+                    self._publisher.publish(data, self._source_name)
+                else:
+                    self._cancelled = True
+                    break
+
+
+SourceToStream = Union[LogSourceToStream, EventSourceToStream]
