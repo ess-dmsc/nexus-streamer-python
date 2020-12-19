@@ -19,7 +19,7 @@ class LogDataSource:
 
     @property
     def name(self):
-        return self._group.name
+        return self._group.name.split("/")[-1]
 
 
 class EventDataSource:
@@ -55,4 +55,4 @@ class EventDataSource:
 
     @property
     def name(self):
-        return self._group.name
+        return self._group.name.split("/")[-1]
