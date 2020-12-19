@@ -1,6 +1,6 @@
 import h5py
 from typing import Union, Tuple, Dict, List
-from data_source import DataSource, LogDataSource, EventDataSource
+from nexus_streamer.data_source import DataSource, LogDataSource, EventDataSource
 
 
 def find_by_nx_class(

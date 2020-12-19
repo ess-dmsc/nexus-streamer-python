@@ -2,7 +2,7 @@ from typing import Union
 from streaming_data_types.logdata_f142 import serialise_f142
 from streaming_data_types.eventdata_ev42 import serialise_ev42
 import numpy as np
-from data_chunk import LogDataChunk, EventDataChunk
+from nexus_streamer.data_chunk import LogDataChunk, EventDataChunk
 
 
 class LogDataPublisher:

@@ -1,4 +1,4 @@
-from data_chunk import LogDataChunk, EventDataChunk
+from nexus_streamer.data_chunk import LogDataChunk, EventDataChunk
 import h5py
 from typing import Tuple
 
