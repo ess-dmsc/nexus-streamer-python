@@ -11,9 +11,9 @@ class LogDataPublisher:
         self._producer = producer
         self._topic = output_topic
 
-    def publish(self, data: LogDataChunk, source_name: str):
+    async def publish(self, data: LogDataChunk, source_name: str):
         for time, value in np.column_stack((data.times, data.values)):
-            self._producer.produce(
+            await self._producer.produce(
                 self._topic, serialise_f142(value, source_name, time)
             )
 
@@ -24,8 +24,8 @@ class EventDataPublisher:
         self._topic = output_topic
         self._message_id = 0
 
-    def publish(self, data: EventDataChunk, source_name: str):
-        self._producer.produce(
+    async def publish(self, data: EventDataChunk, source_name: str):
+        await self._producer.produce(
             self._topic,
             serialise_ev42(
                 source_name,

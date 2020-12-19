@@ -45,13 +45,14 @@ class LogSourceToStream:
 
     async def _publish_loop(self):
         last_timestamp_ns = 0
+        get_data = self._data_source.get_data()
         while not self._cancelled:
             await asyncio.sleep(self._interval)
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
-                data, last_timestamp_ns = self._data_source.get_data()
+                data, last_timestamp_ns = next(get_data)
                 if data is not None:
-                    self._publisher.publish(data, self._source_name)
+                    await self._publisher.publish(data, self._source_name)
                 else:
                     self._cancelled = True
                     break
@@ -97,13 +98,14 @@ class EventSourceToStream:
 
     async def _publish_loop(self):
         last_timestamp_ns = 0
+        get_data = self._data_source.get_data()
         while not self._cancelled:
             await asyncio.sleep(self._interval)
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
-                data, last_timestamp_ns = self._data_source.get_data()
+                data, last_timestamp_ns = next(get_data)
                 if data is not None:
-                    self._publisher.publish(data, self._source_name)
+                    await self._publisher.publish(data, self._source_name)
                 else:
                     self._cancelled = True
                     break

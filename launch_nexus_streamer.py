@@ -83,6 +83,6 @@ if __name__ == "__main__":
     logger.info(f"NeXus Streamer v{version} started")
 
     producer_config = {"bootstrap.servers": args.broker}
-    producer = KafkaProducer(producer_config)
+    kafka_producer = KafkaProducer(producer_config)
 
-    asyncio.run(publish_run(producer))
+    asyncio.run(publish_run(kafka_producer))
