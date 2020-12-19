@@ -1,5 +1,6 @@
 from data_chunk import LogDataChunk, EventDataChunk
 import h5py
+from typing import Tuple
 
 
 class LogDataSource:
@@ -9,7 +10,7 @@ class LogDataSource:
         """
         self._group = group
 
-    def get_data(self) -> (LogDataChunk, int):
+    def get_data(self) -> Tuple[LogDataChunk, int]:
         pass
 
 
@@ -20,5 +21,5 @@ class EventDataSource:
         """
         self._group = group
 
-    def get_data(self) -> (EventDataChunk, int):
+    def get_data(self) -> Tuple[EventDataChunk, int]:
         pass

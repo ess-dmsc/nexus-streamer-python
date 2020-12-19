@@ -6,7 +6,9 @@ from data_source import DataSource, LogDataSource, EventDataSource
 def find_by_nx_class(
     nx_class_names: Tuple[str, ...], root: Union[h5py.File, h5py.Group]
 ) -> Dict[str, h5py.Group]:
-    groups_with_requested_nx_class = {class_name: [] for class_name in nx_class_names}
+    groups_with_requested_nx_class: Dict[str, h5py.Group] = {
+        class_name: [] for class_name in nx_class_names
+    }
 
     def _match_nx_class(_, h5_object):
         if isinstance(h5_object, h5py.Group):
