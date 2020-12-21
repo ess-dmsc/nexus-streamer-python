@@ -26,10 +26,56 @@ class LogDataSource:
             )
             raise BadSource()
 
+        try:
+            self._value_index_reached = 0
+            self._value_dataset = self._group["value"]
+            self._value_chunk_iter = self._value_dataset.iter_chunks()
+            self._current_value_slice = next(self._value_chunk_iter)
+            self._value_buffer = self._value_dataset[self._current_value_slice]
+
+            self._time_index_reached = 0
+            self._time_dataset = self._group["time"]
+            self._time_chunk_iter = self._time_dataset.iter_chunks()
+            self._current_time_slice = next(self._time_chunk_iter)
+            self._time_buffer = self._time_dataset[self._current_time_slice]
+        except StopIteration:
+            self._logger.error(
+                f"Unable to publish data from NXlog at {self._group.name} due to empty value or time field"
+            )
+            raise BadSource()
+
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
         Returns None instead of a data when there is no more data
         """
+        while True:
+            print("yield")
+            yield self._value_buffer[self._value_index_reached], self._convert_time(
+                self._time_buffer[self._value_index_reached]
+            )
+
+            print(f"{self._value_index_reached} of {self._current_value_slice[2]}")
+
+            self._value_index_reached += 1
+            if self._value_index_reached == self._current_value_slice[2]:
+                self._value_index_reached = 0
+                # read next chunk
+                try:
+                    self._current_value_slice = next(self._value_chunk_iter)
+                except StopIteration:
+                    break
+                self._value_buffer = self._value_dataset[self._current_value_slice]
+
+            self._time_index_reached += 1
+            if self._time_index_reached == self._current_time_slice[2]:
+                self._time_index_reached = 0
+                # read next chunk
+                try:
+                    self._current_time_slice = next(self._time_chunk_iter)
+                except StopIteration:
+                    break
+                self._time_buffer = self._time_dataset[self._current_time_slice]
+
         yield None, 0
 
     def _has_missing_fields(self) -> bool:
