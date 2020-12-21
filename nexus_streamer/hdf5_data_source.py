@@ -142,7 +142,8 @@ class EventDataSource:
         event_time_zero = self._group["event_time_zero"][...]
         event_index = self._group["event_index"][...]
         event_index = np.append(
-            event_index, np.array([self._group["event_id"].len() - 1])
+            event_index,
+            np.array([self._group["event_id"].len() - 1]).astype(event_index.dtype),
         )
         for pulse_number in range(self._group["event_index"].len()):
             pulse_time = self._convert_pulse_time(event_time_zero[pulse_number])
