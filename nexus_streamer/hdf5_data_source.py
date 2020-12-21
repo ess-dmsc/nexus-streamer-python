@@ -69,8 +69,6 @@ class LogDataSource:
                     break
                 self._time_buffer = self._time_dataset[self._current_time_slice]
 
-            print(f"{self._value_index_reached} of {self._current_value_slice[0].stop}")
-
             yield self._value_buffer[self._value_index_reached], self._convert_time(
                 self._time_buffer[self._value_index_reached]
             )
