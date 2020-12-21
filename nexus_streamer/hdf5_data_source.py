@@ -104,7 +104,12 @@ class LogDataSource:
 
     @property
     def name(self):
-        return self._group.name.split("/")[-1]
+        group_name = self._group.name.split("/")[-1]
+        # if group name is "value_log" then use parent group name instead
+        # all sample env logs in ISIS files have name value_log...
+        if group_name != "value_log":
+            return group_name
+        return self._group.name.split("/")[-2]
 
 
 class EventDataSource:
