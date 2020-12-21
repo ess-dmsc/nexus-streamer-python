@@ -46,12 +46,12 @@ class LogDataSource:
 
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
-        Returns None instead of a data when there is no more data
+        Returns None instead of data when there is no more data
         """
         while True:
             print("yield")
             yield self._value_buffer[self._value_index_reached], self._convert_time(
-                self._time_buffer[self._value_index_reached]
+                np.array([self._time_buffer[self._value_index_reached]])
             )
 
             print(f"{self._value_index_reached} of {self._current_value_slice[2]}")
@@ -137,7 +137,9 @@ class EventDataSource:
             event_index, np.array([self._group["event_id"].len() - 1])
         )
         for pulse_number in range(self._group["event_index"].len()):
-            pulse_time = self._convert_pulse_time(event_time_zero[pulse_number])
+            pulse_time = np.array(
+                [self._convert_pulse_time(event_time_zero[pulse_number])]
+            )
             yield self._convert_event_time(
                 self._group["event_time_offset"][
                     event_index[pulse_number] : event_index[pulse_number + 1]

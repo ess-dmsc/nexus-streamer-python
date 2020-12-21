@@ -11,15 +11,15 @@ NANOSECONDS = ureg("nanoseconds")
 
 
 def seconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
-    return (input_value / 1_000_000_000).astype(int)
+    return (input_value * 1_000_000_000).astype(int)
 
 
 def milliseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
-    return (input_value / 1_000_000).astype(int)
+    return (input_value * 1_000_000).astype(int)
 
 
 def microseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
-    return (input_value / 1_000).astype(int)
+    return (input_value * 1_000).astype(int)
 
 
 def nanoseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
