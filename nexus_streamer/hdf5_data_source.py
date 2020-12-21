@@ -21,7 +21,7 @@ class LogDataSource:
             self._convert_time = self._get_time_unit_converter()
         except UndefinedUnitError:
             self._logger.error(
-                f"Unable to publish data from NXevent_data at {self._group.name} due to unrecognised "
+                f"Unable to publish data from NXlog at {self._group.name} due to unrecognised "
                 f"or missing units for time field"
             )
             raise BadSource()
