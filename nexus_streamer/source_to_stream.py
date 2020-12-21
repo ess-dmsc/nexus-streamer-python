@@ -17,7 +17,6 @@ class LogSourceToStream:
         interval_s: float = 0.2,
     ):
         """
-        :param source_name: name of data source
         :param source: log data source
         :param producer: Kafka producer to use to publish data
         :param output_topic: Kafka topic to publish data to
@@ -75,7 +74,6 @@ class EventSourceToStream:
         interval_s: float = 0.2,
     ):
         """
-        :param source_name: name of data source
         :param source: event data source
         :param producer: Kafka producer to use to publish data
         :param output_topic: Kafka topic to publish data to
