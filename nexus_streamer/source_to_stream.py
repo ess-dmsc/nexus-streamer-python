@@ -20,7 +20,8 @@ class LogSourceToStream:
         """
         :param source_name: name of data source
         :param source: log data source
-        :param publisher: data from data source is given to the publisher at appropriate time
+        :param producer: Kafka producer to use to publish data
+        :param output_topic: Kafka topic to publish data to
         :param start_time_delta_ns: diff between time publishing started and start time of the run in the data source
         :param interval_s: idle time between publishing data to allow other async tasks to run
         """
@@ -78,7 +79,8 @@ class EventSourceToStream:
         """
         :param source_name: name of data source
         :param source: event data source
-        :param publisher: data from data source is given to the publisher at appropriate time
+        :param producer: Kafka producer to use to publish data
+        :param output_topic: Kafka topic to publish data to
         :param start_time_delta_ns: diff between time publishing started and start time of the run in the data source
         :param interval_s: idle time between publishing data to allow other async tasks to run
         """
@@ -118,7 +120,7 @@ class EventSourceToStream:
                     payload = serialise_ev42(
                         self._source_name,
                         self._message_id,
-                        last_timestamp_ns,
+                        last_timestamp_ns + self._start_time_delta_ns,
                         time_of_flight,
                         detector_id,
                     )
