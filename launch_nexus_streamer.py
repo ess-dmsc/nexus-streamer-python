@@ -34,7 +34,6 @@ async def publish_run(producer: KafkaProducer):
             streamers.extend(
                 [
                     LogSourceToStream(
-                        source.name,
                         source,
                         producer,
                         f"{args.instrument}_sampleEnv",
@@ -46,7 +45,6 @@ async def publish_run(producer: KafkaProducer):
             streamers.extend(
                 [
                     EventSourceToStream(
-                        source.name,
                         source,
                         producer,
                         f"{args.instrument}_events",

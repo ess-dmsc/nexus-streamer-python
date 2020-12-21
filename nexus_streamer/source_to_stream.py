@@ -10,7 +10,6 @@ from streaming_data_types.eventdata_ev42 import serialise_ev42
 class LogSourceToStream:
     def __init__(
         self,
-        source_name: str,
         source: LogDataSource,
         producer: KafkaProducer,
         output_topic: str,
@@ -25,7 +24,7 @@ class LogSourceToStream:
         :param start_time_delta_ns: diff between time publishing started and start time of the run in the data source
         :param interval_s: idle time between publishing data to allow other async tasks to run
         """
-        self._source_name = source_name
+        self._source_name = source.name
         self._data_source = source
         self._producer = producer
         self._topic = output_topic
@@ -69,7 +68,6 @@ class LogSourceToStream:
 class EventSourceToStream:
     def __init__(
         self,
-        source_name: str,
         source: EventDataSource,
         producer: KafkaProducer,
         output_topic: str,
@@ -84,7 +82,7 @@ class EventSourceToStream:
         :param start_time_delta_ns: diff between time publishing started and start time of the run in the data source
         :param interval_s: idle time between publishing data to allow other async tasks to run
         """
-        self._source_name = source_name
+        self._source_name = source.name
         self._data_source = source
         self._producer = producer
         self._topic = output_topic
