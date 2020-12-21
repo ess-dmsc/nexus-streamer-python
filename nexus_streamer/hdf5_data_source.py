@@ -27,13 +27,13 @@ class LogDataSource:
             raise BadSource()
 
         try:
-            self._value_index_reached = 0
+            self._value_index_reached = -1
             self._value_dataset = self._group["value"]
             self._value_chunk_iter = self._value_dataset.iter_chunks()
             self._current_value_slice = next(self._value_chunk_iter)
             self._value_buffer = self._value_dataset[self._current_value_slice]
 
-            self._time_index_reached = 0
+            self._time_index_reached = -1
             self._time_dataset = self._group["time"]
             self._time_chunk_iter = self._time_dataset.iter_chunks()
             self._current_time_slice = next(self._time_chunk_iter)
@@ -49,16 +49,9 @@ class LogDataSource:
         Returns None instead of data when there is no more data
         """
         while True:
-            print("yield")
-            yield self._value_buffer[self._value_index_reached], self._convert_time(
-                np.array([self._time_buffer[self._value_index_reached]])
-            )
-
-            print(f"{self._value_index_reached} of {self._current_value_slice[2]}")
-
             self._value_index_reached += 1
-            if self._value_index_reached == self._current_value_slice[2]:
-                self._value_index_reached = 0
+            if self._value_index_reached == self._current_value_slice[0].stop:
+                self._value_index_reached = -1
                 # read next chunk
                 try:
                     self._current_value_slice = next(self._value_chunk_iter)
@@ -67,14 +60,20 @@ class LogDataSource:
                 self._value_buffer = self._value_dataset[self._current_value_slice]
 
             self._time_index_reached += 1
-            if self._time_index_reached == self._current_time_slice[2]:
-                self._time_index_reached = 0
+            if self._time_index_reached == self._current_time_slice[0].stop:
+                self._time_index_reached = -1
                 # read next chunk
                 try:
                     self._current_time_slice = next(self._time_chunk_iter)
                 except StopIteration:
                     break
                 self._time_buffer = self._time_dataset[self._current_time_slice]
+
+            print(f"{self._value_index_reached} of {self._current_value_slice[0].stop}")
+
+            yield self._value_buffer[self._value_index_reached], self._convert_time(
+                self._time_buffer[self._value_index_reached]
+            )
 
         yield None, 0
 
@@ -137,9 +136,7 @@ class EventDataSource:
             event_index, np.array([self._group["event_id"].len() - 1])
         )
         for pulse_number in range(self._group["event_index"].len()):
-            pulse_time = np.array(
-                [self._convert_pulse_time(event_time_zero[pulse_number])]
-            )
+            pulse_time = self._convert_pulse_time(event_time_zero[pulse_number])
             yield self._convert_event_time(
                 self._group["event_time_offset"][
                     event_index[pulse_number] : event_index[pulse_number + 1]
