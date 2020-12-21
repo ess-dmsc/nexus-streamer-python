@@ -43,6 +43,12 @@ class LogDataSource:
                 f"Unable to publish data from NXlog at {self._group.name} due to empty value or time field"
             )
             raise BadSource()
+        except TypeError:
+            self._logger.error(
+                f"Unable to publish data from NXlog at {self._group.name} as current implementation "
+                f"cannot handle a value or time field which is not chunked"
+            )
+            raise BadSource()
 
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
