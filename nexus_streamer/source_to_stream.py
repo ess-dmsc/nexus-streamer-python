@@ -55,6 +55,9 @@ class LogSourceToStream:
             while last_timestamp_ns < current_run_time_ns:
                 value, last_timestamp_ns = next(get_data)
                 if value is not None:
+                    # TODO this should never occur once time offset @start is accounted for
+                    if last_timestamp_ns < 0:
+                        continue
                     payload = serialise_f142(
                         value, self._source_name, last_timestamp_ns
                     )

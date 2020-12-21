@@ -64,9 +64,6 @@ async def publish_run(producer: KafkaProducer):
                 streamer.start()
 
             while not all([streamer.done for streamer in streamers]):
-                print(
-                    f"{sum([streamer.done for streamer in streamers])} of {len(streamers)} streamers done"
-                )
                 await asyncio.sleep(1.0)
 
             logger.info("Reached end of data sources")
