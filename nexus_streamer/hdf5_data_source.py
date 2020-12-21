@@ -15,11 +15,43 @@ class LogDataSource:
         self._group = group
         self._logger = get_logger()
 
+        if self._has_missing_fields():
+            raise BadSource()
+        try:
+            self._convert_time = self._get_time_unit_converter()
+        except UndefinedUnitError:
+            self._logger.error(
+                f"Unable to publish data from NXevent_data at {self._group.name} due to unrecognised "
+                f"or missing units for time field"
+            )
+            raise BadSource()
+
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
         Returns None instead of a data when there is no more data
         """
         yield None, 0
+
+    def _has_missing_fields(self) -> bool:
+        missing_field = False
+        required_fields = (
+            "time",
+            "value",
+        )
+        for field in required_fields:
+            if field not in self._group:
+                self._logger.error(
+                    f"Unable to publish data from NXlog at {self._group.name} due to missing {field} field"
+                )
+                missing_field = True
+        return missing_field
+
+    def _get_time_unit_converter(self) -> Callable:
+        try:
+            units = self._group["time"].attrs["units"]
+        except AttributeError:
+            raise UndefinedUnitError
+        return get_to_nanoseconds_conversion_method(units)
 
     @property
     def name(self):
@@ -42,7 +74,7 @@ class EventDataSource:
             self._convert_event_time = self._get_event_time_unit_converter()
         except UndefinedUnitError:
             self._logger.error(
-                f"Unable to publish data from NXlog at {self._group.name} due to unrecognised "
+                f"Unable to publish data from NXevent_data at {self._group.name} due to unrecognised "
                 f"or missing units for time field"
             )
             raise BadSource()
@@ -81,7 +113,7 @@ class EventDataSource:
         for field in required_fields:
             if field not in self._group:
                 self._logger.error(
-                    f"Unable to publish data from NXlog at {self._group.name} due to missing {field} field"
+                    f"Unable to publish data from NXevent_data at {self._group.name} due to missing {field} field"
                 )
                 missing_field = True
         return missing_field
