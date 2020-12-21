@@ -1,5 +1,7 @@
 import pint
-from typing import Callable, Union, Optional
+from typing import Callable, Union
+import numpy as np
+from pint.errors import UndefinedUnitError
 
 ureg = pint.UnitRegistry()
 SECONDS = ureg("seconds")
@@ -8,23 +10,27 @@ MICROSECONDS = ureg("microseconds")
 NANOSECONDS = ureg("nanoseconds")
 
 
-def seconds_to_nanoseconds(input_value: Union[float, int]):
-    return int(input_value / 1_000_000_000)
+def seconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
+    return (input_value / 1_000_000_000).astype(int)
 
 
-def milliseconds_to_nanoseconds(input_value: Union[float, int]):
-    return int(input_value / 1_000_000)
+def milliseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
+    return (input_value / 1_000_000).astype(int)
 
 
-def microseconds_to_nanoseconds(input_value: Union[float, int]):
-    return int(input_value / 1_000)
+def microseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
+    return (input_value / 1_000).astype(int)
 
 
-def nanoseconds_to_nanoseconds(input_value: Union[float, int]):
-    return int(input_value)
+def nanoseconds_to_nanoseconds(input_value: np.ndarray) -> np.ndarray:
+    return input_value.astype(int)
 
 
-def get_to_nanoseconds_conversion_method(units: str) -> Optional[Callable]:
+def get_to_nanoseconds_conversion_method(units: Union[str, bytes]) -> Callable:
+    try:
+        units = str(units, encoding="utf8")  # type: ignore
+    except TypeError:
+        pass
     input_units = ureg(units)
 
     if input_units == SECONDS:
@@ -35,4 +41,5 @@ def get_to_nanoseconds_conversion_method(units: str) -> Optional[Callable]:
         return microseconds_to_nanoseconds
     elif input_units == NANOSECONDS:
         return nanoseconds_to_nanoseconds
-    return None
+    else:
+        raise UndefinedUnitError

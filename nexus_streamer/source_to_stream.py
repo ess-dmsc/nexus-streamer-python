@@ -1,8 +1,10 @@
 from time import time_ns
 import asyncio
 from nexus_streamer.data_source import LogDataSource, EventDataSource
-from nexus_streamer.publisher import LogDataPublisher, EventDataPublisher
 from typing import Optional, Any, Union
+from nexus_streamer.kafka_producer import KafkaProducer
+from streaming_data_types.logdata_f142 import serialise_f142
+from streaming_data_types.eventdata_ev42 import serialise_ev42
 
 
 class LogSourceToStream:
@@ -10,7 +12,8 @@ class LogSourceToStream:
         self,
         source_name: str,
         source: LogDataSource,
-        publisher: LogDataPublisher,
+        producer: KafkaProducer,
+        output_topic: str,
         start_time_delta_ns: int,
         interval_s: float = 0.2,
     ):
@@ -23,7 +26,8 @@ class LogSourceToStream:
         """
         self._source_name = source_name
         self._data_source = source
-        self._publisher = publisher
+        self._producer = producer
+        self._topic = output_topic
         self._interval = interval_s
         self._start_time_delta_ns = start_time_delta_ns
         self._cancelled = False
@@ -50,9 +54,12 @@ class LogSourceToStream:
             await asyncio.sleep(self._interval)
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
-                data, last_timestamp_ns = next(get_data)
-                if data is not None:
-                    await self._publisher.publish(data, self._source_name)
+                value, last_timestamp_ns = next(get_data)
+                if value is not None:
+                    payload = serialise_f142(
+                        value, self._source_name, last_timestamp_ns
+                    )
+                    await self._producer.produce(self._topic, payload)
                 else:
                     self._cancelled = True
                     break
@@ -63,7 +70,8 @@ class EventSourceToStream:
         self,
         source_name: str,
         source: EventDataSource,
-        publisher: EventDataPublisher,
+        producer: KafkaProducer,
+        output_topic: str,
         start_time_delta_ns: int,
         interval_s: float = 0.2,
     ):
@@ -76,11 +84,13 @@ class EventSourceToStream:
         """
         self._source_name = source_name
         self._data_source = source
-        self._publisher = publisher
+        self._producer = producer
+        self._topic = output_topic
         self._interval = interval_s
         self._start_time_delta_ns = start_time_delta_ns
         self._cancelled = False
         self._publish_data: Optional[asyncio.Task[Any]] = None
+        self._message_id = 0
 
     def start(self):
         self._cancelled = False
@@ -103,9 +113,17 @@ class EventSourceToStream:
             await asyncio.sleep(self._interval)
             current_run_time_ns = time_ns() - self._start_time_delta_ns
             while last_timestamp_ns < current_run_time_ns:
-                data, last_timestamp_ns = next(get_data)
-                if data is not None:
-                    await self._publisher.publish(data, self._source_name)
+                time_of_flight, detector_id, last_timestamp_ns = next(get_data)
+                if time_of_flight is not None:
+                    payload = serialise_ev42(
+                        self._source_name,
+                        self._message_id,
+                        last_timestamp_ns,
+                        time_of_flight,
+                        detector_id,
+                    )
+                    await self._producer.produce(self._topic, payload)
+                    self._message_id += 1
                 else:
                     self._cancelled = True
                     break

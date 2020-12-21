@@ -5,7 +5,6 @@ from nexus_streamer.create_data_sources_from_nexus import (
 )
 import h5py
 from nexus_streamer.kafka_producer import KafkaProducer
-from nexus_streamer.publisher import LogDataPublisher, EventDataPublisher
 from nexus_streamer.source_to_stream import (
     LogSourceToStream,
     EventSourceToStream,
@@ -18,9 +17,6 @@ import asyncio
 async def publish_run(producer: KafkaProducer):
     streamers: List[SourceToStream] = []
     try:
-        log_publisher = LogDataPublisher(producer, f"{args.instrument}_sampleEnv")
-        event_publisher = EventDataPublisher(producer, f"{args.instrument}_events")
-
         # TODO Need run start time from the file
         #  and other info to make run start message
         # start_time = time_ns()
@@ -30,10 +26,19 @@ async def publish_run(producer: KafkaProducer):
             log_data_sources, event_data_sources = create_data_sources_from_nexus_file(
                 nexus_file
             )
+
+            if not log_data_sources and not event_data_sources:
+                logger.critical("No valid data sources found in file, aborting")
+                return
+
             streamers.extend(
                 [
                     LogSourceToStream(
-                        source.name, source, log_publisher, start_time_delta_ns
+                        source.name,
+                        source,
+                        producer,
+                        f"{args.instrument}_sampleEnv",
+                        start_time_delta_ns,
                     )
                     for source in log_data_sources
                 ]
@@ -41,7 +46,11 @@ async def publish_run(producer: KafkaProducer):
             streamers.extend(
                 [
                     EventSourceToStream(
-                        source.name, source, event_publisher, start_time_delta_ns
+                        source.name,
+                        source,
+                        producer,
+                        f"{args.instrument}_events",
+                        start_time_delta_ns,
                     )
                     for source in event_data_sources
                 ]

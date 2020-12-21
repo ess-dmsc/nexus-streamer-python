@@ -1,6 +1,7 @@
 import h5py
 from typing import Union, Tuple, Dict, List
 from nexus_streamer.data_source import LogDataSource, EventDataSource
+from nexus_streamer.source_error import BadSource
 
 
 def get_attr_as_str(h5_object, attribute_name: str):
@@ -37,6 +38,21 @@ def create_data_sources_from_nexus_file(
     nx_log = "NXlog"
     nx_event_data = "NXevent_data"
     groups = find_by_nx_class((nx_log, nx_event_data), nexus_file)
-    return [LogDataSource(group) for group in groups[nx_log]], [
-        EventDataSource(group) for group in groups[nx_event_data]
-    ]
+
+    log_sources = []
+    for group in groups[nx_log]:
+        try:
+            log_sources.append(LogDataSource(group))
+        except BadSource:
+            # Reason for error is logged in source init
+            pass
+
+    event_sources = []
+    for group in groups[nx_event_data]:
+        try:
+            event_sources.append(EventDataSource(group))
+        except BadSource:
+            # Reason for error is logged in source init
+            pass
+
+    return log_sources, event_sources
