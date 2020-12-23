@@ -1,6 +1,7 @@
 import h5py
 from typing import Union, Tuple, Dict, List
-from nexus_streamer.data_source import LogDataSource, EventDataSource
+from nexus_streamer.data_source import EventDataSource
+from nexus_streamer.log_data_source import LogDataSource
 from nexus_streamer.source_error import BadSource
 
 

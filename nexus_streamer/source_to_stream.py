@@ -1,6 +1,6 @@
 from time import time_ns
 import asyncio
-from nexus_streamer.data_source import LogDataSource, EventDataSource
+from nexus_streamer.data_source import EventDataSource, LogDataSource
 from typing import Optional, Any, Union
 from nexus_streamer.kafka_producer import KafkaProducer
 from streaming_data_types.logdata_f142 import serialise_f142
