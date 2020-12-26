@@ -1,5 +1,5 @@
 import h5py
-from typing import Tuple, Optional, Generator, Callable
+from typing import Tuple, Optional, Generator, Callable, Union
 import numpy as np
 from nexus_streamer.application_logger import get_logger
 from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
@@ -7,7 +7,7 @@ from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
 
 
-class ChunkCache:
+class ChunkDataLoader:
     def __init__(self, dataset: h5py.Dataset):
         self._dataset = dataset
         self._chunk_iterator = self._dataset.iter_chunks()
@@ -45,6 +45,27 @@ class ChunkCache:
             self._current_chunk = self._dataset[next_slice]
 
 
+class ContiguousDataLoader:
+    def __init__(self, dataset: h5py.Dataset):
+        self._dataset = dataset
+        max_bytes_willing_to_load_into_memory = 100_000_000  # 100 MB
+        if self._dataset.nbytes < max_bytes_willing_to_load_into_memory:
+            self._dataset = self._dataset[...]
+        elif self._dataset.compression is not None:
+            get_logger().warning(
+                f"{self._dataset.name} is larger than {max_bytes_willing_to_load_into_memory} bytes,"
+                f"contiguous and compressed, it will be very slow to stream if these event data are from many pulses"
+            )
+
+    def get_data_for_pulse(
+        self, pulse_start_event: int, pulse_end_event: int
+    ) -> np.ndarray:
+        return self._dataset[pulse_start_event:pulse_end_event]
+
+
+DataLoader = Union[ChunkDataLoader, ContiguousDataLoader]
+
+
 class EventDataSource:
     def __init__(self, group: h5py.Group):
         """
@@ -53,6 +74,8 @@ class EventDataSource:
         """
         self._group = group
         self._logger = get_logger()
+        self._tof_loader: DataLoader
+        self._id_loader: DataLoader
 
         if self._has_missing_fields():
             raise BadSource()
@@ -82,8 +105,17 @@ class EventDataSource:
         else:
             self._event_index[-1] = self._group["event_id"].len()
 
-        self._tof_loader = ChunkCache(self._group["event_time_offset"])
-        self._id_loader = ChunkCache(self._group["event_id"])
+        try:
+            self._group["event_time_offset"].iter_chunks()
+            self._tof_loader = ChunkDataLoader(self._group["event_time_offset"])
+        except TypeError:
+            self._tof_loader = ContiguousDataLoader(self._group["event_time_offset"])
+
+        try:
+            self._group["event_id"].iter_chunks()
+            self._id_loader = ChunkDataLoader(self._group["event_id"])
+        except TypeError:
+            self._id_loader = ContiguousDataLoader(self._group["event_id"])
 
     def get_data(
         self,
