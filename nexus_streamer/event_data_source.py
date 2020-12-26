@@ -7,6 +7,37 @@ from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
 
 
+class ChunkCache:
+    def __init__(self, dataset: h5py.Dataset):
+        self._dataset = dataset
+        self._chunk_iterator = self._dataset.iter_chunks()
+        self._current_slice = next(self._chunk_iterator)
+        self._current_chunk = self._dataset[self._current_slice]
+        self._start_index: int = 0
+
+    def get_data_for_pulse(
+        self, pulse_start_event: int, pulse_end_event: int
+    ) -> np.ndarray:
+        start_index = int(pulse_start_event - self._start_index)
+        end_index = int(pulse_end_event - self._start_index)
+
+        data_for_pulse = np.array([], dtype=self._current_chunk.dtype)
+        while True:
+            if self._start_index + self._current_chunk.size > end_index:
+                return np.append(
+                    data_for_pulse, self._current_chunk[start_index:end_index]
+                )
+
+            data_for_pulse = np.append(
+                data_for_pulse, self._current_chunk[start_index:]
+            )
+
+            # We need to load more data
+            self._start_index += self._current_slice[0].stop
+            self._current_slice = next(self._chunk_iterator)
+            self._current_chunk = self._dataset[self._current_slice]
+
+
 class EventDataSource:
     def __init__(self, group: h5py.Group):
         """
@@ -37,67 +68,8 @@ class EventDataSource:
             ),
         )
 
-        self._tof_buffer_start_index = 0
-        self._event_tof = self._group["event_time_offset"]
-        self._tof_chunk_iter = self._event_tof.iter_chunks()
-        self._current_tof_slice = next(self._tof_chunk_iter)
-        self._tof_buffer = self._event_tof[self._current_tof_slice]
-
-        self._id_buffer_start_index = 0
-        self._event_id = self._group["event_id"]
-        self._id_chunk_iter = self._event_id.iter_chunks()
-        self._current_id_slice = next(self._id_chunk_iter)
-        self._id_buffer = self._event_id[self._current_id_slice]
-
-    def _get_tofs_for_pulse(self, pulse_number: int):
-        start_index = int(
-            self._event_index[pulse_number] - self._tof_buffer_start_index
-        )
-        end_index = int(
-            self._event_index[pulse_number + 1] - self._tof_buffer_start_index
-        )
-
-        tof_for_pulse = np.array([], dtype=self._tof_buffer.dtype)
-        while True:
-            if self._tof_buffer_start_index + self._tof_buffer.size > end_index:
-                return self._convert_event_time(
-                    np.append(
-                        tof_for_pulse,
-                        self._convert_event_time(
-                            self._tof_buffer[start_index:end_index]
-                        ),
-                    )
-                )
-
-            tof_for_pulse = np.append(
-                tof_for_pulse, self._convert_event_time(self._tof_buffer[start_index:])
-            )
-
-            # We need to load more data
-            self._tof_buffer_start_index += self._current_tof_slice[0].stop
-            self._current_tof_slice = next(self._tof_chunk_iter)
-            self._tof_buffer = self._event_tof[self._current_tof_slice]
-
-    def _get_ids_for_pulse(self, pulse_number: int):
-        start_index = int(self._event_index[pulse_number] - self._id_buffer_start_index)
-        end_index = int(
-            self._event_index[pulse_number + 1] - self._id_buffer_start_index
-        )
-
-        ids_for_pulse = np.array([], dtype=self._id_buffer.dtype)
-        while True:
-            if self._id_buffer_start_index + self._id_buffer.size > end_index:
-                return np.append(
-                    ids_for_pulse,
-                    self._id_buffer[start_index:end_index],
-                )
-
-            ids_for_pulse = np.append(ids_for_pulse, self._id_buffer[start_index:])
-
-            # We need to load more data
-            self._id_buffer_start_index += self._current_id_slice[0].stop
-            self._current_id_slice = next(self._id_chunk_iter)
-            self._id_buffer = self._event_id[self._current_id_slice]
+        self._tof_loader = ChunkCache(self._group["event_time_offset"])
+        self._id_loader = ChunkCache(self._group["event_id"])
 
     def get_data(
         self,
@@ -109,9 +81,11 @@ class EventDataSource:
             if pulse_number == 82:
                 print("break")
             pulse_time = self._convert_pulse_time(self._event_time_zero[pulse_number])
-            yield self._get_tofs_for_pulse(pulse_number), self._get_ids_for_pulse(
-                pulse_number
-            ), pulse_time
+            start_event = self._event_index[pulse_number]
+            end_event = self._event_index[pulse_number + 1]
+            yield self._convert_event_time(
+                self._tof_loader.get_data_for_pulse(start_event, end_event)
+            ), self._id_loader.get_data_for_pulse(start_event, end_event), pulse_time
         yield None, None, 0
 
     def _has_missing_fields(self) -> bool:
