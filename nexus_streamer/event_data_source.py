@@ -11,8 +11,8 @@ class ChunkCache:
     def __init__(self, dataset: h5py.Dataset):
         self._dataset = dataset
         self._chunk_iterator = self._dataset.iter_chunks()
-        self._current_slice = next(self._chunk_iterator)
-        self._current_chunk = self._dataset[self._current_slice]
+        next_slice = next(self._chunk_iterator)
+        self._current_chunk = self._dataset[next_slice]
         self._start_index: int = 0
 
     def get_data_for_pulse(
@@ -23,19 +23,26 @@ class ChunkCache:
 
         data_for_pulse = np.array([], dtype=self._current_chunk.dtype)
         while True:
-            if self._start_index + self._current_chunk.size > end_index:
+            # If all the data we need is in the current, cached chunk,
+            # then just append and return it
+            if end_index < self._current_chunk.size:
                 return np.append(
                     data_for_pulse, self._current_chunk[start_index:end_index]
                 )
-
+            # else...
+            # we need all the data in the current chunk...
             data_for_pulse = np.append(
                 data_for_pulse, self._current_chunk[start_index:]
             )
-
-            # We need to load more data
-            self._start_index += self._current_slice[0].stop
-            self._current_slice = next(self._chunk_iterator)
-            self._current_chunk = self._dataset[self._current_slice]
+            # and at least some from the next chunk, so load the next chunk and continue
+            end_index -= self._current_chunk.size
+            start_index = 0
+            self._start_index += self._current_chunk.size
+            try:
+                next_slice = next(self._chunk_iterator)
+            except StopIteration:
+                return data_for_pulse
+            self._current_chunk = self._dataset[next_slice]
 
 
 class EventDataSource:
@@ -61,12 +68,19 @@ class EventDataSource:
 
         self._event_time_zero = self._group["event_time_zero"][...]
         self._event_index = self._group["event_index"][...]
-        self._event_index = np.append(
-            self._event_index,
-            np.array([self._group["event_id"].len() - 1]).astype(
-                self._event_index.dtype
-            ),
-        )
+
+        # There is some variation in the last recorded event_index in files from different institutions
+        # for example ISIS files often have what would be the first index of the next pulse at the end.
+        # This logic hopefully covers most cases
+        if self._event_index[-1] < self._group["event_id"].len():
+            self._event_index = np.append(
+                self._event_index,
+                np.array([self._group["event_id"].len() - 1]).astype(
+                    self._event_index.dtype
+                ),
+            )
+        else:
+            self._event_index[-1] = self._group["event_id"].len()
 
         self._tof_loader = ChunkCache(self._group["event_time_offset"])
         self._id_loader = ChunkCache(self._group["event_id"])
@@ -77,9 +91,8 @@ class EventDataSource:
         """
         Returns None instead of a data when there is no more data
         """
-        for pulse_number in range(self._group["event_index"].len()):
-            if pulse_number == 82:
-                print("break")
+        # -1 as last event index is the end index of the last pulse, not start of a new pulse
+        for pulse_number in range(self._group["event_index"].len() - 1):
             pulse_time = self._convert_pulse_time(self._event_time_zero[pulse_number])
             start_event = self._event_index[pulse_number]
             end_event = self._event_index[pulse_number + 1]
