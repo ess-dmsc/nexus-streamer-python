@@ -59,9 +59,15 @@ class LogSourceToStream:
                         # TODO this should never occur, maybe count occurrences and report warning at end of run?
                         continue
                     payload = serialise_f142(
-                        value, self._source_name, last_timestamp_ns
+                        value,
+                        self._source_name,
+                        last_timestamp_ns + self._start_time_delta_ns,
                     )
-                    await self._producer.produce(self._topic, payload)
+                    await self._producer.produce(
+                        self._topic,
+                        payload,
+                        last_timestamp_ns + self._start_time_delta_ns,
+                    )
                 else:
                     self._cancelled = True
                     break
@@ -123,7 +129,11 @@ class EventSourceToStream:
                         time_of_flight,
                         detector_id,
                     )
-                    await self._producer.produce(self._topic, payload)
+                    await self._producer.produce(
+                        self._topic,
+                        payload,
+                        last_timestamp_ns + self._start_time_delta_ns,
+                    )
                     self._message_id += 1
                 else:
                     self._cancelled = True
