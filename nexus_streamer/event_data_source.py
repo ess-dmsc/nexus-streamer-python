@@ -5,6 +5,7 @@ from nexus_streamer.application_logger import get_logger
 from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
 from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
+from datetime import datetime
 
 
 class ChunkDataLoader:
@@ -66,6 +67,23 @@ class ContiguousDataLoader:
 DataLoader = Union[ChunkDataLoader, ContiguousDataLoader]
 
 
+def _get_pulse_time_offset_in_ns(pulse_time_dataset: h5py.Group) -> int:
+    """
+    Gives an offset which, when added to pulse times, results in time relative to unix epoch
+    """
+    try:
+        date_string = pulse_time_dataset.attrs["offset"]
+        # fromisoformat doesn't like the Z notation :rolleyes:
+        offset_datetime = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+        ns_since_unix_epoch = int(
+            offset_datetime.timestamp() * 1_000_000_000
+        )  # s float to ns int
+    except KeyError:
+        # If no "offset" attribute then times are already relative to unix epoch according to NeXus standard
+        return 0
+    return ns_since_unix_epoch
+
+
 class EventDataSource:
     def __init__(self, group: h5py.Group):
         """
@@ -117,6 +135,8 @@ class EventDataSource:
         except TypeError:
             self._id_loader = ContiguousDataLoader(self._group["event_id"])
 
+        self._pulse_time_offset_ns = _get_pulse_time_offset_in_ns(self._event_time_zero)
+
     def get_data(
         self,
     ) -> Generator[Tuple[Optional[np.ndarray], Optional[np.ndarray], int], None, None]:
@@ -125,7 +145,10 @@ class EventDataSource:
         """
         # -1 as last event index is the end index of the last pulse, not start of a new pulse
         for pulse_number in range(self._group["event_index"].len() - 1):
-            pulse_time = self._convert_pulse_time(self._event_time_zero[pulse_number])
+            pulse_time = (
+                self._convert_pulse_time(self._event_time_zero[pulse_number])
+                + self._pulse_time_offset_ns
+            )
             start_event = self._event_index[pulse_number]
             end_event = self._event_index[pulse_number + 1]
             yield self._convert_event_time(

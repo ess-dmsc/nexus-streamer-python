@@ -3,10 +3,28 @@ from typing import Generator, Tuple, Optional, Callable
 import h5py
 import numpy as np
 from pint import UndefinedUnitError
+from datetime import datetime
 
 from nexus_streamer.application_logger import get_logger
 from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
 from nexus_streamer.source_error import BadSource
+
+
+def _get_time_offset_in_ns(time_dataset: h5py.Group) -> int:
+    """
+    Gives an offset which, when added to data times, results in time relative to unix epoch
+    """
+    try:
+        date_string = time_dataset.attrs["start"]
+        # fromisoformat doesn't like the Z notation :rolleyes:
+        offset_datetime = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+        ns_since_unix_epoch = int(
+            offset_datetime.timestamp() * 1_000_000_000
+        )  # s float to ns int
+    except KeyError:
+        # If no "start" attribute then times are already relative to unix epoch according to NeXus standard
+        return 0
+    return ns_since_unix_epoch
 
 
 class LogDataSource:
@@ -52,6 +70,8 @@ class LogDataSource:
             )
             raise BadSource()
 
+        self._time_offset_ns = _get_time_offset_in_ns(self._time_dataset)
+
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
         Returns None instead of data when there is no more data
@@ -78,7 +98,7 @@ class LogDataSource:
                 self._time_buffer = self._time_dataset[self._current_time_slice]
 
             yield self._value_buffer[self._value_index_reached], self._convert_time(
-                self._time_buffer[self._value_index_reached]
+                self._time_buffer[self._value_index_reached] + self._time_offset_ns
             )
 
         yield None, 0
