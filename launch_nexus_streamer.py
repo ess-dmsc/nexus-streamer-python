@@ -20,6 +20,8 @@ async def publish_run(producer: KafkaProducer):
         # TODO Need run start time from the file
         #  and other info to make run start message
         # start_time = time_ns()
+        # Alter start_time_delta_ns to change start time of run from the one recorded in the file,
+        #  for example to appear as if the data is being produced by the beamline as the NeXus Streamer is running
         start_time_delta_ns = 0
 
         with h5py.File(args.filename, "r") as nexus_file:
