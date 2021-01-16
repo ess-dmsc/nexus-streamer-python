@@ -15,18 +15,22 @@ from nexus_streamer.publish_run_message import (
     publish_run_stop_message,
 )
 from nexus_streamer.generate_json_description import nexus_file_to_json_description
+from nexus_streamer.create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
+from time import time_ns
 
 
 async def publish_run(producer: KafkaProducer, run_id: int, nexus_structure: str):
     streamers: List[SourceToStream] = []
     try:
-        # TODO Need run start time from the file
-        # start_time = time_ns()
-        # Alter start_time_delta_ns to change start time of run from the one recorded in the file,
-        #  for example to appear as if the data is being produced by the beamline as the NeXus Streamer is running
-        start_time_delta_ns = 0
+        recorded_run_start_time_ns = get_recorded_run_start_time_ns(args.filename)
+        # Time difference between starting to stream with NeXus Streamer and the run start time which was recorded
+        # in the NeXus file, used as an offset for all timestamps so that output appears as if the data is being
+        # produced live by the beamline
+        start_time_delta_ns = time_ns() - recorded_run_start_time_ns
+
+        # TODO adjust the run start time in the nexus_structure
 
         job_id = publish_run_start_message(
             args.instrument,

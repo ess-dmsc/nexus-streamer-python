@@ -3,11 +3,11 @@ from typing import Generator, Tuple, Optional, Callable
 import h5py
 import numpy as np
 from pint import UndefinedUnitError
-from datetime import datetime
 
 from nexus_streamer.application_logger import get_logger
 from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
 from nexus_streamer.source_error import BadSource
+from nexus_streamer.convert_units import iso8601_to_ns_since_epoch
 
 
 def _get_time_offset_in_ns(time_dataset: h5py.Group) -> int:
@@ -16,15 +16,10 @@ def _get_time_offset_in_ns(time_dataset: h5py.Group) -> int:
     """
     try:
         date_string = time_dataset.attrs["start"]
-        # fromisoformat doesn't like the Z notation :rolleyes:
-        offset_datetime = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
-        ns_since_unix_epoch = int(
-            offset_datetime.timestamp() * 1_000_000_000
-        )  # s float to ns int
     except KeyError:
         # If no "start" attribute then times are already relative to unix epoch according to NeXus standard
         return 0
-    return ns_since_unix_epoch
+    return iso8601_to_ns_since_epoch(date_string)
 
 
 class LogDataSource:

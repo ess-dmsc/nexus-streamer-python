@@ -5,7 +5,7 @@ from nexus_streamer.application_logger import get_logger
 from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
 from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
-from datetime import datetime
+from nexus_streamer.convert_units import iso8601_to_ns_since_epoch
 
 
 class ChunkDataLoader:
@@ -73,15 +73,10 @@ def _get_pulse_time_offset_in_ns(pulse_time_dataset: h5py.Group) -> int:
     """
     try:
         date_string = pulse_time_dataset.attrs["offset"]
-        # fromisoformat doesn't like the Z notation :rolleyes:
-        offset_datetime = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
-        ns_since_unix_epoch = int(
-            offset_datetime.timestamp() * 1_000_000_000
-        )  # s float to ns int
     except KeyError:
         # If no "offset" attribute then times are already relative to unix epoch according to NeXus standard
         return 0
-    return ns_since_unix_epoch
+    return iso8601_to_ns_since_epoch(date_string)
 
 
 class EventDataSource:
