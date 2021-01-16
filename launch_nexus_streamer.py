@@ -14,11 +14,12 @@ from nexus_streamer.publish_run_message import (
     publish_run_start_message,
     publish_run_stop_message,
 )
+from nexus_streamer.generate_json_description import nexus_file_to_json_description
 from typing import List
 import asyncio
 
 
-async def publish_run(producer: KafkaProducer, run_number: int):
+async def publish_run(producer: KafkaProducer, run_id: int, nexus_structure: str):
     streamers: List[SourceToStream] = []
     try:
         # TODO Need run start time from the file
@@ -27,10 +28,9 @@ async def publish_run(producer: KafkaProducer, run_number: int):
         #  for example to appear as if the data is being produced by the beamline as the NeXus Streamer is running
         start_time_delta_ns = 0
 
-        nexus_structure = "{}"
         job_id = publish_run_start_message(
             args.instrument,
-            run_number,
+            run_id,
             args.broker,
             nexus_structure,
             producer,
@@ -51,7 +51,7 @@ async def publish_run(producer: KafkaProducer, run_number: int):
                     LogSourceToStream(
                         source,
                         producer,
-                        f"{args.instrument}_sampleEnv",
+                        log_data_topic,
                         start_time_delta_ns,
                     )
                     for source in log_data_sources
@@ -62,7 +62,7 @@ async def publish_run(producer: KafkaProducer, run_number: int):
                     EventSourceToStream(
                         source,
                         producer,
-                        f"{args.instrument}_events",
+                        event_data_topic,
                         start_time_delta_ns,
                     )
                     for source in event_data_sources
@@ -108,5 +108,11 @@ if __name__ == "__main__":
     producer_config = {"bootstrap.servers": args.broker}
     kafka_producer = KafkaProducer(producer_config)
 
+    log_data_topic = f"{args.instrument}_sampleEnv"
+    event_data_topic = f"{args.instrument}_events"
+    nexus_structure_json = nexus_file_to_json_description(
+        args.filename, event_data_topic, log_data_topic
+    )
+
     run_number = 0
-    asyncio.run(publish_run(kafka_producer, run_number))
+    asyncio.run(publish_run(kafka_producer, run_number, nexus_structure_json))

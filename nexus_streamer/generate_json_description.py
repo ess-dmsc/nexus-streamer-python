@@ -1,7 +1,6 @@
 import numpy as np
 import nexusformat.nexus as nexus
 import json
-import argparse
 
 
 class NexusToDictConverter:
@@ -9,13 +8,21 @@ class NexusToDictConverter:
     Class used to convert nexus format root to python dict
     """
 
-    def __init__(self, truncate_large_datasets: bool = False, large: int = 10):
+    def __init__(
+        self,
+        truncate_large_datasets: bool = False,
+        large: int = 10,
+        event_data_topic: str = "EVENT_DATA_TOPIC",
+        log_data_topic: str = "LOG_DATA_TOPIC",
+    ):
         """
         :param truncate_large_datasets: if True truncates datasets with any dimension larger than large
         :param large: dimensions larger than this are considered large
         """
         self.truncate_large_datasets = truncate_large_datasets
         self.large = large
+        self._event_data_topic = event_data_topic
+        self._log_data_topic = log_data_topic
 
     def convert(self, nexus_root: nexus.NXroot) -> dict:
         """
@@ -138,7 +145,7 @@ class NexusToDictConverter:
                 stream_info["source"] = root.nxgroup.nxname
             else:
                 stream_info["source"] = root.nxname
-            stream_info["topic"] = "SAMPLE_ENV_TOPIC"
+            stream_info["topic"] = self._log_data_topic
             try:
                 stream_info["dtype"] = self._get_dtype(root.entries["value"])
             except KeyError:
@@ -148,7 +155,7 @@ class NexusToDictConverter:
                     is_stream = False
         elif isinstance(root, nexus.NXevent_data):
             stream_info["writer_module"] = "ev42"
-            stream_info["topic"] = "EVENT_DATA_TOPIC"
+            stream_info["topic"] = self._event_data_topic
             stream_info["source"] = "NeXus-Streamer"
             is_stream = True
         if is_stream:
@@ -169,37 +176,14 @@ class NexusToDictConverter:
         return root_dict
 
 
-def object_to_json_file(tree_dict, filename):
-    """
-    Create a JSON file describing the NeXus file
-    WARNING, output files can easily be 10 times the size of input NeXus file
-
-    :param tree_dict: Root node of the tree
-    :param filename: Name for the output file
-    """
-    with open(filename, "w") as outfile:
-        json.dump(tree_dict, outfile, indent=2, sort_keys=False)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+def nexus_file_to_json_description(
+    filename: str, event_data_topic: str, log_data_topic: str
+) -> str:
+    nexus_file = nexus.nxload(filename)
+    converter = NexusToDictConverter(
+        truncate_large_datasets=True,
+        event_data_topic=event_data_topic,
+        log_data_topic=log_data_topic,
     )
-    parser.add_argument(
-        "-i",
-        "--input-filename",
-        type=str,
-        help="Input NeXus file to generate JSON description of",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-filename",
-        type=str,
-        help="Output filename for the NeXus structure JSON",
-    )
-    args = parser.parse_args()
-    converter = NexusToDictConverter(truncate_large_datasets=True)
-
-    nexus_file = nexus.nxload(args.input_filename)
     tree = converter.convert(nexus_file)
-    object_to_json_file(tree, args.output_filename)
+    return json.dumps(tree, indent=2, sort_keys=False)
