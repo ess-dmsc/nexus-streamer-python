@@ -10,11 +10,15 @@ from nexus_streamer.source_to_stream import (
     EventSourceToStream,
     SourceToStream,
 )
+from nexus_streamer.publish_run_message import (
+    publish_run_start_message,
+    publish_run_stop_message,
+)
 from typing import List
 import asyncio
 
 
-async def publish_run(producer: KafkaProducer):
+async def publish_run(producer: KafkaProducer, run_number: int):
     streamers: List[SourceToStream] = []
     try:
         # TODO Need run start time from the file
@@ -23,6 +27,16 @@ async def publish_run(producer: KafkaProducer):
         # Alter start_time_delta_ns to change start time of run from the one recorded in the file,
         #  for example to appear as if the data is being produced by the beamline as the NeXus Streamer is running
         start_time_delta_ns = 0
+
+        nexus_structure = "{}"
+        job_id = publish_run_start_message(
+            args.instrument,
+            run_number,
+            args.broker,
+            nexus_structure,
+            producer,
+            f"{args.instrument}_runInfo",
+        )
 
         with h5py.File(args.filename, "r") as nexus_file:
             log_data_sources, event_data_sources = create_data_sources_from_nexus_file(
@@ -69,6 +83,7 @@ async def publish_run(producer: KafkaProducer):
                 await asyncio.sleep(1.0)
 
             logger.info("Reached end of data sources")
+        publish_run_stop_message(job_id, producer, f"{args.instrument}_runInfo")
 
     except KeyboardInterrupt:
         logger.info("%% Aborted by user")
@@ -94,4 +109,5 @@ if __name__ == "__main__":
     producer_config = {"bootstrap.servers": args.broker}
     kafka_producer = KafkaProducer(producer_config)
 
-    asyncio.run(publish_run(kafka_producer))
+    run_number = 0
+    asyncio.run(publish_run(kafka_producer, run_number))
