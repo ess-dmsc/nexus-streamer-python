@@ -24,6 +24,11 @@ def iso8601_to_ns_since_epoch(iso8601_timestamp: Union[str, bytes]) -> int:
     return ns_since_unix_epoch
 
 
+def ns_since_epoch_to_iso8601(ns_since_epoch: int) -> str:
+    dt = datetime.fromtimestamp(ns_since_epoch * 0.000000001)
+    return dt.isoformat()
+
+
 def seconds_to_nanoseconds(input_value: Union[float, int, np.ndarray]) -> np.ndarray:
     return (np.array(input_value) * 1_000_000_000).astype(int)
 

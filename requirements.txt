@@ -6,3 +6,6 @@ numpy
 graypy
 pint
 nexusformat
+
+# ipython required by nexusformat
+ipython

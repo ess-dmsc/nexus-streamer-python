@@ -61,7 +61,7 @@ def create_data_sources_from_nexus_file(
     return log_sources, event_sources
 
 
-def get_recorded_run_start_time_ns(filename: str) -> int:
+def get_recorded_run_start_time_ns(filename: str) -> Tuple[int, str]:
     logger = get_logger()
     with h5py.File(filename, "r") as nexus_file:
         # start_time dataset in the NXentry is method of recording run start supported by the standard
@@ -73,17 +73,19 @@ def get_recorded_run_start_time_ns(filename: str) -> int:
                 "Note: NeXus Streamer will stream data from all groups as if it were one experiment run."
             )
         run_start_time_ns = None
+        run_start_dataset_path = ""
         for entry_group in entry_groups[nx_entry_class]:
             try:
                 start_time_dataset = entry_group["start_time"]
                 found_start_time_ns = iso8601_to_ns_since_epoch(start_time_dataset[...])
                 if run_start_time_ns is None or found_start_time_ns < run_start_time_ns:
                     run_start_time_ns = found_start_time_ns
+                    run_start_dataset_path = start_time_dataset.name
             except KeyError:
                 pass
 
         if run_start_time_ns is not None:
-            return run_start_time_ns
+            return run_start_time_ns, run_start_dataset_path
 
         logger.error("No start_time dataset found in NXentry to use as run start time")
         raise RuntimeError("Found nothing to use as run start time")

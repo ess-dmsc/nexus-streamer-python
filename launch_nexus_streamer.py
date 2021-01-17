@@ -14,23 +14,32 @@ from nexus_streamer.publish_run_message import (
     publish_run_start_message,
     publish_run_stop_message,
 )
-from nexus_streamer.generate_json_description import nexus_file_to_json_description
+
+# from nexus_streamer.generate_json_description import nexus_file_to_json_description
 from nexus_streamer.create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
 
 
-async def publish_run(producer: KafkaProducer, run_id: int, nexus_structure: str):
+async def publish_run(producer: KafkaProducer, run_id: int):
     streamers: List[SourceToStream] = []
     try:
-        recorded_run_start_time_ns = get_recorded_run_start_time_ns(args.filename)
+        recorded_run_start_time_ns, run_start_ds_path = get_recorded_run_start_time_ns(
+            args.filename
+        )
         # Time difference between starting to stream with NeXus Streamer and the run start time which was recorded
         # in the NeXus file, used as an offset for all timestamps so that output appears as if the data is being
         # produced live by the beamline
-        start_time_delta_ns = time_ns() - recorded_run_start_time_ns
+        streamer_start_time = time_ns()
+        start_time_delta_ns = streamer_start_time - recorded_run_start_time_ns
 
-        # TODO adjust the run start time in the nexus_structure
+        log_data_topic = f"{args.instrument}_sampleEnv"
+        event_data_topic = f"{args.instrument}_events"
+        # nexus_structure = nexus_file_to_json_description(
+        #     args.filename, event_data_topic, log_data_topic, streamer_start_time, run_start_ds_path
+        # )
+        nexus_structure = "{}"
 
         job_id = publish_run_start_message(
             args.instrument,
@@ -90,8 +99,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, nexus_structure: str
 
     except KeyboardInterrupt:
         logger.info("%% Aborted by user")
-    except Exception as e:
-        logger.critical(f"Error caused streaming to abort: {e}")
     finally:
         for streamer in streamers:
             streamer.stop()
@@ -112,11 +119,5 @@ if __name__ == "__main__":
     producer_config = {"bootstrap.servers": args.broker}
     kafka_producer = KafkaProducer(producer_config)
 
-    log_data_topic = f"{args.instrument}_sampleEnv"
-    event_data_topic = f"{args.instrument}_events"
-    nexus_structure_json = nexus_file_to_json_description(
-        args.filename, event_data_topic, log_data_topic
-    )
-
     run_number = 0
-    asyncio.run(publish_run(kafka_producer, run_number, nexus_structure_json))
+    asyncio.run(publish_run(kafka_producer, run_number))

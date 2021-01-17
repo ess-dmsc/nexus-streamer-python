@@ -130,7 +130,9 @@ class EventDataSource:
         except TypeError:
             self._id_loader = ContiguousDataLoader(self._group["event_id"])
 
-        self._pulse_time_offset_ns = _get_pulse_time_offset_in_ns(self._event_time_zero)
+        self._pulse_time_offset_ns = _get_pulse_time_offset_in_ns(
+            self._group["event_time_zero"]
+        )
 
     def get_data(
         self,
