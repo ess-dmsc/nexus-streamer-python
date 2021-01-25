@@ -159,7 +159,6 @@ class EventDataSource:
             "event_time_zero",
             "event_index",
             "event_id",
-            "event_index",
             "event_time_offset",
         )
         for field in required_fields:
