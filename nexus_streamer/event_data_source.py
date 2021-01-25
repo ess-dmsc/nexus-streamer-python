@@ -2,10 +2,12 @@ import h5py
 from typing import Tuple, Optional, Generator, Callable, Union
 import numpy as np
 from nexus_streamer.application_logger import get_logger
-from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
+from nexus_streamer.convert_units import (
+    get_to_nanoseconds_conversion_method,
+    iso8601_to_ns_since_epoch,
+)
 from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
-from nexus_streamer.convert_units import iso8601_to_ns_since_epoch
 
 
 class ChunkDataLoader:
