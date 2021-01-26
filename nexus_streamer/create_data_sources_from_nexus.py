@@ -16,8 +16,8 @@ def get_attr_as_str(h5_object, attribute_name: str):
 
 def find_by_nx_class(
     nx_class_names: Tuple[str, ...], root: Union[h5py.File, h5py.Group]
-) -> Dict[str, h5py.Group]:
-    groups_with_requested_nx_class: Dict[str, h5py.Group] = {
+) -> Dict[str, List[h5py.Group]]:
+    groups_with_requested_nx_class: Dict[str, List[h5py.Group]] = {
         class_name: [] for class_name in nx_class_names
     }
 
