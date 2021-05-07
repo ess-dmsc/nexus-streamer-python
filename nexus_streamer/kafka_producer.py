@@ -1,7 +1,6 @@
 import confluent_kafka
 from threading import Thread
 from nexus_streamer.application_logger import setup_logger
-import asyncio
 from typing import Optional
 
 
@@ -12,7 +11,6 @@ class KafkaProducer:
         self._poll_thread = Thread(target=self._poll_loop)
         self._poll_thread.start()
         self.logger = setup_logger()
-        self._produce_backoff_s = 0.5
 
     def _poll_loop(self):
         while not self._cancelled:
@@ -24,7 +22,7 @@ class KafkaProducer:
         max_wait_to_publish_producer_queue = 2  # seconds
         self._producer.flush(max_wait_to_publish_producer_queue)
 
-    async def produce(
+    def produce(
         self,
         topic: str,
         payload: bytes,
@@ -34,19 +32,16 @@ class KafkaProducer:
             if err:
                 self.logger.error(f"Message failed delivery: {err}")
 
-        sent_to_producer_buffer = False
-        while not sent_to_producer_buffer:
-            try:
-                if timestamp_ns is not None:
-                    self._producer.produce(
-                        topic,
-                        payload,
-                        on_delivery=ack,
-                        timestamp=timestamp_ns * 0.000001,  # ns to ms
-                    )
-                else:
-                    self._producer.produce(topic, payload, on_delivery=ack)
-                self._producer.poll(0)
-                sent_to_producer_buffer = True
-            except BufferError:
-                await asyncio.sleep(self._produce_backoff_s)
+        try:
+            if timestamp_ns is not None:
+                self._producer.produce(
+                    topic,
+                    payload,
+                    on_delivery=ack,
+                    timestamp=int(timestamp_ns * 0.000001),  # ns to ms
+                )
+            else:
+                self._producer.produce(topic, payload, on_delivery=ack)
+            self._producer.poll(0)
+        except BufferError:
+            self.logger.error("Producer buffer full")

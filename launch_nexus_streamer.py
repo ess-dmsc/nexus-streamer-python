@@ -119,7 +119,10 @@ if __name__ == "__main__":
     version = get_version()
     logger.info(f"NeXus Streamer v{version} started")
 
-    producer_config = {"bootstrap.servers": args.broker}
+    producer_config = {
+        "bootstrap.servers": args.broker,
+        "message.max.bytes": 200000000,
+    }
     kafka_producer = KafkaProducer(producer_config)
 
     run_number = 0
