@@ -142,8 +142,7 @@ class EventDataSource:
         """
         Returns None instead of a data when there is no more data
         """
-        # -1 as last event index is the end index of the last pulse, not start of a new pulse
-        for pulse_number in range(self._group["event_index"].len() - 1):
+        for pulse_number in range(self._group["event_index"].len()):
             pulse_time = (
                 self._convert_pulse_time(self._event_time_zero[pulse_number])
                 + self._pulse_time_offset_ns

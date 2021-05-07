@@ -15,7 +15,7 @@ from nexus_streamer.publish_run_message import (
     publish_run_stop_message,
 )
 
-# from nexus_streamer.generate_json_description import nexus_file_to_json_description
+from nexus_streamer.generate_json_description import nexus_file_to_json_description
 from nexus_streamer.create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
@@ -36,10 +36,13 @@ async def publish_run(producer: KafkaProducer, run_id: int):
 
         log_data_topic = f"{args.instrument}_sampleEnv"
         event_data_topic = f"{args.instrument}_events"
-        # nexus_structure = nexus_file_to_json_description(
-        #     args.filename, event_data_topic, log_data_topic, streamer_start_time, run_start_ds_path
-        # )
-        nexus_structure = "{}"
+        nexus_structure = nexus_file_to_json_description(
+            args.filename,
+            event_data_topic,
+            log_data_topic,
+            streamer_start_time,
+            run_start_ds_path,
+        )
 
         job_id = publish_run_start_message(
             args.instrument,
@@ -116,7 +119,10 @@ if __name__ == "__main__":
     version = get_version()
     logger.info(f"NeXus Streamer v{version} started")
 
-    producer_config = {"bootstrap.servers": args.broker}
+    producer_config = {
+        "bootstrap.servers": args.broker,
+        "message.max.bytes": 200000000,
+    }
     kafka_producer = KafkaProducer(producer_config)
 
     run_number = 0

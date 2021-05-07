@@ -3,6 +3,7 @@ from typing import Callable, Union
 from pint.errors import UndefinedUnitError
 import numpy as np
 from datetime import datetime
+import dateutil.parser
 
 ureg = pint.UnitRegistry()
 SECONDS = ureg("seconds")
@@ -16,8 +17,7 @@ def iso8601_to_ns_since_epoch(iso8601_timestamp: Union[str, bytes]) -> int:
         iso8601_timestamp = str(iso8601_timestamp, encoding="utf8")  # type: ignore
     except TypeError:
         pass
-    # fromisoformat doesn't like the Z notation :rolleyes:
-    offset_datetime = datetime.fromisoformat(iso8601_timestamp.replace("Z", "+00:00"))  # type: ignore
+    offset_datetime = dateutil.parser.parse(iso8601_timestamp)
     ns_since_unix_epoch = int(
         offset_datetime.timestamp() * 1_000_000_000
     )  # s float to ns int

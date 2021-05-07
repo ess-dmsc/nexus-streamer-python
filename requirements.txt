@@ -6,6 +6,7 @@ numpy
 graypy
 pint
 nexusformat
+py-dateutil
 
 # ipython required by nexusformat
 ipython
