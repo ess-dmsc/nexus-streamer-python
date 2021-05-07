@@ -191,7 +191,7 @@ def _replace_old_start_time_with_streamer_start_time(
     new_run_start_ns: int, run_start_dataset_path: str, json_tree: dict
 ):
     new_run_start_time = ns_since_epoch_to_iso8601(new_run_start_ns)
-    run_start_dataset_path_list = run_start_dataset_path.split("/")
+    run_start_dataset_path_list = run_start_dataset_path.split("/")[1:]
     for node_name in run_start_dataset_path_list:
         json_tree = _get_child_node(node_name, json_tree)
     json_tree["values"] = [new_run_start_time]
@@ -206,7 +206,7 @@ def nexus_file_to_json_description(
 ) -> str:
     nexus_file = nexus.nxload(filename)
     converter = NexusToDictConverter(
-        truncate_large_datasets=True,
+        truncate_large_datasets=False,
         event_data_topic=event_data_topic,
         log_data_topic=log_data_topic,
     )
@@ -214,9 +214,5 @@ def nexus_file_to_json_description(
     _replace_old_start_time_with_streamer_start_time(
         new_run_start_ns, run_start_dataset_path, tree
     )
-
-    # TODO temp testing
-    with open("test_json_output.json", "w") as json_file:
-        json.dump(tree, json_file, indent=2, sort_keys=False)
 
     return json.dumps(tree, indent=2, sort_keys=False)
