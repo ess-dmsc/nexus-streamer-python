@@ -53,13 +53,13 @@ class LogDataSource:
             self._time_chunk_iter = self._time_dataset.iter_chunks()
             self._current_time_slice = next(self._time_chunk_iter)
             self._time_buffer = self._time_dataset[self._current_time_slice]
-        except StopIteration:
-            self._logger.error(
+        except (StopIteration, ValueError):
+            self._logger.warn(
                 f"Unable to publish data from NXlog at {self._group.name} due to empty value or time field"
             )
             raise BadSource()
         except TypeError:
-            self._logger.error(
+            self._logger.warn(
                 f"Unable to publish data from NXlog at {self._group.name} as current implementation "
                 f"cannot handle a value or time field which is not chunked"
             )
