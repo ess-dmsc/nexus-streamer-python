@@ -2,6 +2,7 @@ import numpy as np
 import nexusformat.nexus as nexus
 import json
 from nexus_streamer.convert_units import ns_since_epoch_to_iso8601
+from typing import Tuple, Union
 
 
 class NexusToDictConverter:
@@ -59,7 +60,7 @@ class NexusToDictConverter:
         return data
 
     def _get_data_and_type(self, root):
-        size = 1
+        size: Union[int, Tuple[int, ...]] = 1
         data = root.nxdata
         dtype = str(root.dtype)
         if isinstance(data, np.ndarray):
