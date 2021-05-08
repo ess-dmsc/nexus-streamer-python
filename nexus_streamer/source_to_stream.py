@@ -5,6 +5,7 @@ from typing import Optional, Any, Union
 from nexus_streamer.kafka_producer import KafkaProducer
 from streaming_data_types.logdata_f142 import serialise_f142
 from streaming_data_types.eventdata_ev42 import serialise_ev42
+import numpy as np
 
 
 class LogSourceToStream:
@@ -15,6 +16,7 @@ class LogSourceToStream:
         output_topic: str,
         start_time_delta_ns: int,
         interval_s: float = 0.2,
+        slow_mode: bool = False,
     ):
         """
         :param source: log data source
@@ -31,6 +33,7 @@ class LogSourceToStream:
         self._start_time_delta_ns = start_time_delta_ns
         self._cancelled = False
         self._publish_data: Optional[asyncio.Task[Any]] = None
+        self._slow_mode = slow_mode
 
     def start(self):
         self._cancelled = False
@@ -49,28 +52,30 @@ class LogSourceToStream:
     async def _publish_loop(self):
         last_timestamp_ns = 0
         get_data = self._data_source.get_data()
+        current_run_time_ns = np.iinfo(np.int64).max
         while not self._cancelled:
-            await asyncio.sleep(self._interval)
-            current_run_time_ns = time_ns() - self._start_time_delta_ns
+            if self._slow_mode:
+                current_run_time_ns = time_ns()
             while last_timestamp_ns < current_run_time_ns:
-                value, last_timestamp_ns = next(get_data)
+                value, data_timestamp_ns = next(get_data)
                 if value is not None:
-                    if last_timestamp_ns < 0:
-                        # TODO this should never occur, maybe count occurrences and report warning at end of run?
+                    if data_timestamp_ns < 0:
                         continue
+                    last_timestamp_ns = data_timestamp_ns + self._start_time_delta_ns
                     payload = serialise_f142(
                         value,
                         self._source_name,
-                        last_timestamp_ns + self._start_time_delta_ns,
+                        last_timestamp_ns,
                     )
                     self._producer.produce(
                         self._topic,
                         payload,
-                        last_timestamp_ns + self._start_time_delta_ns,
+                        last_timestamp_ns,
                     )
                 else:
                     self._cancelled = True
                     break
+            await asyncio.sleep(self._interval)
 
 
 class EventSourceToStream:
@@ -81,6 +86,7 @@ class EventSourceToStream:
         output_topic: str,
         start_time_delta_ns: int,
         interval_s: float = 0.2,
+        slow_mode: bool = True,
     ):
         """
         :param source: event data source
@@ -98,6 +104,7 @@ class EventSourceToStream:
         self._cancelled = False
         self._publish_data: Optional[asyncio.Task[Any]] = None
         self._message_id = 0
+        self._slow_mode = slow_mode
 
     def start(self):
         self._cancelled = False
@@ -116,28 +123,31 @@ class EventSourceToStream:
     async def _publish_loop(self):
         last_timestamp_ns = 0
         get_data = self._data_source.get_data()
+        current_run_time_ns = np.iinfo(np.int64).max
         while not self._cancelled:
-            await asyncio.sleep(self._interval)
-            current_run_time_ns = time_ns() - self._start_time_delta_ns
+            if self._slow_mode:
+                current_run_time_ns = time_ns()
             while last_timestamp_ns < current_run_time_ns:
-                time_of_flight, detector_id, last_timestamp_ns = next(get_data)
+                time_of_flight, detector_id, data_timestamp_ns = next(get_data)
                 if time_of_flight is not None:
+                    last_timestamp_ns = data_timestamp_ns + self._start_time_delta_ns
                     payload = serialise_ev42(
                         self._source_name,
                         self._message_id,
-                        last_timestamp_ns + self._start_time_delta_ns,
+                        last_timestamp_ns,
                         time_of_flight,
                         detector_id,
                     )
                     self._producer.produce(
                         self._topic,
                         payload,
-                        last_timestamp_ns + self._start_time_delta_ns,
+                        last_timestamp_ns,
                     )
                     self._message_id += 1
                 else:
                     self._cancelled = True
                     break
+            await asyncio.sleep(self._interval)
 
 
 SourceToStream = Union[LogSourceToStream, EventSourceToStream]
