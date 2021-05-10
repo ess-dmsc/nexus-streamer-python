@@ -36,13 +36,17 @@ async def publish_run(producer: KafkaProducer, run_id: int):
 
         log_data_topic = f"{args.instrument}_sampleEnv"
         event_data_topic = f"{args.instrument}_events"
-        nexus_structure = nexus_file_to_json_description(
-            args.filename,
-            event_data_topic,
-            log_data_topic,
-            streamer_start_time,
-            run_start_ds_path,
-        )
+        if args.json_description:
+            with open(args.json_description, "r") as json_file:
+                nexus_structure = json_file.read()
+        else:
+            nexus_structure = nexus_file_to_json_description(
+                args.filename,
+                event_data_topic,
+                log_data_topic,
+                streamer_start_time,
+                run_start_ds_path,
+            )
 
         job_id = publish_run_start_message(
             args.instrument,

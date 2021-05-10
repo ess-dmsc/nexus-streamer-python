@@ -97,6 +97,12 @@ def parse_args():
         env_var="FILENAME",
     )
     parser.add_argument(
+        "--json-description",
+        required=False,
+        help="If provided use this JSON template instead of generating one from the NeXus file",
+        env_var="JSON_FILENAME",
+    )
+    parser.add_argument(
         "-b",
         "--broker",
         required=True,
