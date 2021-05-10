@@ -112,6 +112,13 @@ def parse_args():
         type=str,
         env_var="INSTRUMENT",
     )
+    parser.add_argument(
+        "-s",
+        "--slow",
+        action="store_true",
+        help="Stream data into Kafka at approx realistic rate (uses timestamps from file)",
+        env_var="SLOW",
+    )
 
     optargs = parser.parse_args()
     optargs.verbosity = log_choice_to_enum[optargs.verbosity]

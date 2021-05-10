@@ -69,6 +69,7 @@ async def publish_run(producer: KafkaProducer, run_id: int):
                         producer,
                         log_data_topic,
                         start_time_delta_ns,
+                        slow_mode=args.slow,
                     )
                     for source in log_data_sources
                 ]
@@ -80,6 +81,7 @@ async def publish_run(producer: KafkaProducer, run_id: int):
                         producer,
                         event_data_topic,
                         start_time_delta_ns,
+                        slow_mode=args.slow,
                     )
                     for source in event_data_sources
                 ]

@@ -86,7 +86,7 @@ class EventSourceToStream:
         output_topic: str,
         start_time_delta_ns: int,
         interval_s: float = 0.2,
-        slow_mode: bool = True,
+        slow_mode: bool = False,
     ):
         """
         :param source: event data source
