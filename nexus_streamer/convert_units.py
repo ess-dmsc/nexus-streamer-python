@@ -2,7 +2,7 @@ import pint
 from typing import Callable, Union
 from pint.errors import UndefinedUnitError
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 import dateutil.parser
 
 ureg = pint.UnitRegistry()
@@ -18,6 +18,9 @@ def iso8601_to_ns_since_epoch(iso8601_timestamp: Union[str, bytes]) -> int:
     except TypeError:
         pass
     offset_datetime = dateutil.parser.parse(iso8601_timestamp)
+    if offset_datetime.tzinfo is None:
+        # Assume time is UTC if it was not explicit
+        offset_datetime = offset_datetime.replace(tzinfo=timezone.utc)
     ns_since_unix_epoch = int(
         offset_datetime.timestamp() * 1_000_000_000
     )  # s float to ns int
