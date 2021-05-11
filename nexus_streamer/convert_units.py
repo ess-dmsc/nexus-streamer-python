@@ -29,6 +29,7 @@ def iso8601_to_ns_since_epoch(iso8601_timestamp: Union[str, bytes]) -> int:
 
 def ns_since_epoch_to_iso8601(ns_since_epoch: int) -> str:
     dt = datetime.fromtimestamp(ns_since_epoch * 0.000000001)
+    dt = dt.replace(tzinfo=timezone.utc)
     return dt.isoformat()
 
 
