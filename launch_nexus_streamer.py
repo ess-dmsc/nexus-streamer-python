@@ -39,6 +39,9 @@ async def publish_run(producer: KafkaProducer, run_id: int):
         if args.json_description:
             with open(args.json_description, "r") as json_file:
                 nexus_structure = json_file.read()
+                nexus_structure = replace_placeholder_topic_names(
+                    nexus_structure, log_data_topic, event_data_topic
+                )
         else:
             nexus_structure = nexus_file_to_json_description(
                 args.filename,
@@ -112,6 +115,15 @@ async def publish_run(producer: KafkaProducer, run_id: int):
         for streamer in streamers:
             streamer.stop()
         producer.close()
+
+
+def replace_placeholder_topic_names(nexus_structure, log_data_topic, event_data_topic):
+    for topic in (
+        ("SAMPLE_ENV_TOPIC", log_data_topic),
+        ("EVENT_DATA_TOPIC", event_data_topic),
+    ):
+        nexus_structure = nexus_structure.replace(topic[0], topic[1])
+    return nexus_structure
 
 
 if __name__ == "__main__":
