@@ -144,4 +144,11 @@ if __name__ == "__main__":
     kafka_producer = KafkaProducer(producer_config)
 
     run_number = 0
-    asyncio.run(publish_run(kafka_producer, run_number))
+    if args.single_run:
+        asyncio.run(publish_run(kafka_producer, run_number))
+        logger.info(f"Completed streaming run {run_number}")
+    else:
+        while True:
+            asyncio.run(publish_run(kafka_producer, run_number))
+            logger.info(f"Streamed run {run_number}")
+            run_number += 1
