@@ -125,6 +125,13 @@ def parse_args():
         help="Stream data into Kafka at approx realistic rate (uses timestamps from file)",
         env_var="SLOW",
     )
+    parser.add_argument(
+        "-z",
+        "--single-run",
+        action="store_true",
+        help="Publish only a single run (otherwise repeats until interrupted)",
+        env_var="SINGLE_RUN",
+    )
 
     optargs = parser.parse_args()
     optargs.verbosity = log_choice_to_enum[optargs.verbosity]
