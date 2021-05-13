@@ -1,5 +1,7 @@
 # NeXus Streamer
 
+This is intended to replace https://github.com/ess-dmsc/NeXus-Streamer with a Python implementation which should be much lower effort to maintain. The C++ implmentation is not yet obsolete, missing features in this implementation are documented in tickets.
+
 ## Installing dependencies
 
 Python 3.7 or higher is required. https://www.python.org/downloads/
