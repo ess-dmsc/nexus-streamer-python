@@ -2,7 +2,7 @@
 import ecdcpipeline.ContainerBuildNode
 import ecdcpipeline.PipelineBuilder
 
-project = "nexus-streamer"
+project = "nexus-streamer-python"
 
 container_build_nodes = [
   'centos7': ContainerBuildNode.getDefaultContainerBuildNode('centos7-gcc8')
