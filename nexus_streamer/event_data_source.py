@@ -10,7 +10,7 @@ from pint.errors import UndefinedUnitError
 from nexus_streamer.source_error import BadSource
 
 
-class ChunkDataLoader:
+class _ChunkDataLoader:
     def __init__(self, dataset: h5py.Dataset):
         self._dataset = dataset
         self._chunk_iterator = self._dataset.iter_chunks()
@@ -48,7 +48,7 @@ class ChunkDataLoader:
             self._current_chunk = self._dataset[next_slice]
 
 
-class ContiguousDataLoader:
+class _ContiguousDataLoader:
     def __init__(self, dataset: h5py.Dataset):
         self._dataset = dataset
         max_bytes_willing_to_load_into_memory = 100_000_000  # 100 MB
@@ -66,7 +66,7 @@ class ContiguousDataLoader:
         return self._dataset[pulse_start_event:pulse_end_event]
 
 
-DataLoader = Union[ChunkDataLoader, ContiguousDataLoader]
+_DataLoader = Union[_ChunkDataLoader, _ContiguousDataLoader]
 
 
 def _get_pulse_time_offset_in_ns(pulse_time_dataset: h5py.Group) -> int:
@@ -89,8 +89,8 @@ class EventDataSource:
         """
         self._group = group
         self._logger = get_logger()
-        self._tof_loader: DataLoader
-        self._id_loader: DataLoader
+        self._tof_loader: _DataLoader
+        self._id_loader: _DataLoader
 
         if self._has_missing_fields():
             raise BadSource()
@@ -122,15 +122,15 @@ class EventDataSource:
 
         try:
             self._group["event_time_offset"].iter_chunks()
-            self._tof_loader = ChunkDataLoader(self._group["event_time_offset"])
+            self._tof_loader = _ChunkDataLoader(self._group["event_time_offset"])
         except TypeError:
-            self._tof_loader = ContiguousDataLoader(self._group["event_time_offset"])
+            self._tof_loader = _ContiguousDataLoader(self._group["event_time_offset"])
 
         try:
             self._group["event_id"].iter_chunks()
-            self._id_loader = ChunkDataLoader(self._group["event_id"])
+            self._id_loader = _ChunkDataLoader(self._group["event_id"])
         except TypeError:
-            self._id_loader = ContiguousDataLoader(self._group["event_id"])
+            self._id_loader = _ContiguousDataLoader(self._group["event_id"])
 
         self._pulse_time_offset_ns = _get_pulse_time_offset_in_ns(
             self._group["event_time_zero"]
