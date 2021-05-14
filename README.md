@@ -2,7 +2,7 @@
 
 Streams event and metadata from a NeXus file into Kafka, mimicking data acquisition from a live instrument. This facilitates testing software which consume these data.
 
-This Python implementaation is intended to replace a C++ implementation (https://github.com/ess-dmsc/NeXus-Streamer) and should be much lower effort to maintain. The C++ implmentation is not yet obsolete; features missing from this implementation are documented in tickets.
+This Python implementation is intended to replace a C++ implementation (https://github.com/ess-dmsc/NeXus-Streamer) and should be much lower effort to maintain. The C++ implmentation is not yet obsolete; features missing from this implementation are documented in tickets.
 
 ## Usage
 ```
