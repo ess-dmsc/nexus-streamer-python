@@ -7,17 +7,17 @@ This is intended to replace https://github.com/ess-dmsc/NeXus-Streamer with a Py
 Python 3.7 or higher is required. https://www.python.org/downloads/
 
 To install from source with setuptools do
-```
+```commandline
 python setup.py install
 ```
 
 and check installation was successful by running
-```
+```commandline
 nexus_streamer --help
 ```
 
 ## Usage
-```
+```commandline
 usage: nexus_streamer [-h] [--version]
                       [--graylog-logger-address GRAYLOG_LOGGER_ADDRESS]
                       [--log-file LOG_FILE] [-c CONFIG_FILE]

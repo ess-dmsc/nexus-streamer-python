@@ -22,7 +22,7 @@ requirements:
     - graypy
     - pint
     - nexusformat
-    - py-dateutil
+    - python-dateutil
     - ipython
 
 about:
