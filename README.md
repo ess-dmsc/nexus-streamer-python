@@ -4,19 +4,26 @@ This is intended to replace https://github.com/ess-dmsc/NeXus-Streamer with a Py
 
 ## Installation
 
+Python 3.7 or higher is required. https://www.python.org/downloads/
+
 To install with setuptools and pypi do
 ```
 python setup.py install
 ```
 
+and check installation was successful by running
+```
+nexus_streamer --help
+```
+
 ## Usage
 ```
-usage: launch_nexus_streamer.py [-h] [--version]
-                                [--graylog-logger-address GRAYLOG_LOGGER_ADDRESS]
-                                [--log-file LOG_FILE] [-c CONFIG_FILE]
-                                [-v {Trace,Debug,Warning,Error,Critical}] -f
-                                FILENAME [--json-description JSON_DESCRIPTION]
-                                -b BROKER -i INSTRUMENT [-s] [-z]
+usage: nexus_streamer [-h] [--version]
+                      [--graylog-logger-address GRAYLOG_LOGGER_ADDRESS]
+                      [--log-file LOG_FILE] [-c CONFIG_FILE]
+                      [-v {Trace,Debug,Warning,Error,Critical}] -f
+                      FILENAME [--json-description JSON_DESCRIPTION]
+                      -b BROKER -i INSTRUMENT [-s] [-z]
 
 NeXus Streamer Args that start with '--' (eg. --version) can also be set in a
 config file (specified via -c). Config file syntax allows: key=value,
@@ -55,21 +62,12 @@ optional arguments:
 
 ```
 
-## Installing dependencies
-
-Python 3.7 or higher is required. https://www.python.org/downloads/
-
-Runtime Python dependencies are listed in `requirements.txt` at the root of the
-repository. They can be installed from a terminal by running
-```
-pip install -r requirements.txt
-```
-
 ## Developer information
 
 ### Development dependencies
 
-Development dependencies (including all runtime dependencies) can be installed by using the following command
+In addition to the dependencies listed in setup.cfg there are some development dependencies.
+These can be installed using pip
 
 ```
 pip install -r requirements-dev.txt
