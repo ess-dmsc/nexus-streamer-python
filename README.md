@@ -6,7 +6,7 @@ This is intended to replace https://github.com/ess-dmsc/NeXus-Streamer with a Py
 
 Python 3.7 or higher is required. https://www.python.org/downloads/
 
-To install with setuptools and pypi do
+To install from source with setuptools do
 ```
 python setup.py install
 ```
