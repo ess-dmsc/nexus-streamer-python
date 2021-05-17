@@ -64,6 +64,8 @@ optional arguments:
 
 ## Developer information
 
+Adding or removing dependencies must be done in both [conda/meta.yaml](conda/meta.yaml) and [setup.cfg](setup.cfg).
+
 ### Development dependencies
 
 In addition to the dependencies listed in setup.cfg there are some development dependencies.
