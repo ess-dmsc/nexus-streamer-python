@@ -1,0 +1,31 @@
+package:
+  name: nexus-streamer
+
+version: {{ GIT_DESCRIBE_TAG }}
+
+source:
+  path: ..
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  noarch: python
+  script: python -m pip install --target={{ environ.get('PREFIX') }}/lib/python/site-packages --ignore-installed --no-deps -vv .
+
+requirements:
+  run:
+    - numpy
+    - python >=3.7
+    - configargparse
+    - python-confluent-kafka
+    - ess-dmsc:ess-streaming-data-types
+    - h5py
+    - graypy
+    - pint
+    - nexusformat
+    - py-dateutil
+    - ipython
+
+about:
+  home: https://github.com/ess-dmsc/nexus-streamer-python
+  summary: Stream data from a NeXus file into Kafka
+  license: BSD-2-Clause
