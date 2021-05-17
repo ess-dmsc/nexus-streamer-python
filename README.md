@@ -11,6 +11,11 @@ To install from source with setuptools do
 python setup.py install
 ```
 
+or to install from conda do
+```commandline
+conda install -c conda-forge -c ess-dmsc nexus-streamer
+```
+
 and check installation was successful by running
 ```commandline
 nexus_streamer --help
