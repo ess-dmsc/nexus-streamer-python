@@ -2,6 +2,13 @@
 
 This is intended to replace https://github.com/ess-dmsc/NeXus-Streamer with a Python implementation which should be much lower effort to maintain. The C++ implmentation is not yet obsolete, missing features in this implementation are documented in tickets.
 
+## Installation
+
+To install with setuptools and pypi do
+```
+python setup.py install
+```
+
 ## Usage
 ```
 usage: launch_nexus_streamer.py [-h] [--version]

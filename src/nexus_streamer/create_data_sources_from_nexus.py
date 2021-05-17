@@ -1,10 +1,10 @@
 import h5py
 from typing import Union, Tuple, Dict, List
-from nexus_streamer.data_source import EventDataSource
-from nexus_streamer.log_data_source import LogDataSource
-from nexus_streamer.source_error import BadSource
-from nexus_streamer.application_logger import get_logger
-from nexus_streamer.convert_units import iso8601_to_ns_since_epoch
+from .data_source import EventDataSource
+from .log_data_source import LogDataSource
+from .source_error import BadSource
+from .application_logger import get_logger
+from .convert_units import iso8601_to_ns_since_epoch
 
 
 def get_attr_as_str(h5_object, attribute_name: str):

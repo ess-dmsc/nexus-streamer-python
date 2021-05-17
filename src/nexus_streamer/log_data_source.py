@@ -4,10 +4,10 @@ import h5py
 import numpy as np
 from pint import UndefinedUnitError
 
-from nexus_streamer.application_logger import get_logger
-from nexus_streamer.convert_units import get_to_nanoseconds_conversion_method
-from nexus_streamer.source_error import BadSource
-from nexus_streamer.convert_units import iso8601_to_ns_since_epoch
+from .application_logger import get_logger
+from .convert_units import get_to_nanoseconds_conversion_method
+from .source_error import BadSource
+from .convert_units import iso8601_to_ns_since_epoch
 
 
 def _get_time_offset_in_ns(time_dataset: h5py.Group) -> int:

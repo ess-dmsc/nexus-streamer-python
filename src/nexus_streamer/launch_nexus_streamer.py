@@ -1,28 +1,28 @@
-from nexus_streamer.parse_commandline_args import parse_args, get_version
-from nexus_streamer.application_logger import setup_logger
-from nexus_streamer.create_data_sources_from_nexus import (
+from .parse_commandline_args import parse_args, get_version
+from .application_logger import setup_logger
+from .create_data_sources_from_nexus import (
     create_data_sources_from_nexus_file,
 )
 import h5py
-from nexus_streamer.kafka_producer import KafkaProducer
-from nexus_streamer.source_to_stream import (
+from .kafka_producer import KafkaProducer
+from .source_to_stream import (
     LogSourceToStream,
     EventSourceToStream,
     SourceToStream,
 )
-from nexus_streamer.publish_run_message import (
+from .publish_run_message import (
     publish_run_start_message,
     publish_run_stop_message,
 )
 
-from nexus_streamer.generate_json_description import nexus_file_to_json_description
-from nexus_streamer.create_data_sources_from_nexus import get_recorded_run_start_time_ns
+from .generate_json_description import nexus_file_to_json_description
+from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
 
 
-async def publish_run(producer: KafkaProducer, run_id: int):
+async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
     streamers: List[SourceToStream] = []
     try:
         recorded_run_start_time_ns, run_start_ds_path = get_recorded_run_start_time_ns(
@@ -126,9 +126,8 @@ def replace_placeholder_topic_names(nexus_structure, log_data_topic, event_data_
     return nexus_structure
 
 
-if __name__ == "__main__":
+def launch_streamer():
     args = parse_args()
-
     logger = setup_logger(
         level=args.verbosity,
         log_file_name=args.log_file,
@@ -136,19 +135,21 @@ if __name__ == "__main__":
     )
     version = get_version()
     logger.info(f"NeXus Streamer v{version} started")
-
     producer_config = {
         "bootstrap.servers": args.broker,
         "message.max.bytes": 200000000,
     }
     kafka_producer = KafkaProducer(producer_config)
-
     run_number = 0
     if args.single_run:
-        asyncio.run(publish_run(kafka_producer, run_number))
+        asyncio.run(publish_run(kafka_producer, run_number, args, logger))
         logger.info(f"Completed streaming run {run_number}")
     else:
         while True:
-            asyncio.run(publish_run(kafka_producer, run_number))
+            asyncio.run(publish_run(kafka_producer, run_number, args, logger))
             logger.info(f"Streamed run {run_number}")
             run_number += 1
+
+
+if __name__ == "__main__":
+    launch_streamer()
