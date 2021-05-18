@@ -25,6 +25,7 @@ This command can also be used to run the hooks manually.
 
 ## Release process
 
+Commit a change to bump the version number in [src/nexus_streamer/__init__.py](src/nexus_streamer/__init__.py).
 Create a git version tag, for example `v0.7.0`. You must make this first because the conda package uses the tag as its version.
 
 ### 1. Create conda package
@@ -80,4 +81,4 @@ and login with the ESS-DMSC-ECDC PyPi account.
 
 Create a new release on the [releases page](https://github.com/ess-dmsc/nexus-streamer-python/releases). Add contents of [changes.md](changes.md) to the release notes.
 
-Commit a change to bump the version number in [src/nexus_streamer/__init__.py](src/nexus_streamer/__init__.py) and clean [changes.md](changes.md). 
+Clean [changes.md](changes.md). 
