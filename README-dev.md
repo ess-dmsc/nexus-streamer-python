@@ -25,9 +25,9 @@ This command can also be used to run the hooks manually.
 
 ## Release process
 
-Create a git version tag, for example `v0.7.0`.
+Create a git version tag, for example `v0.7.0`. You must make this first because the conda package uses the tag as its version.
 
-You must first have a conda installation, for example `conda` via pip, or [miniconda](https://docs.conda.io/en/latest/miniconda.html).
+You must have a conda installation, for example `conda` via pip, or [miniconda](https://docs.conda.io/en/latest/miniconda.html).
 
 From the directory of the nexus-streamer-python repository, build the package with
 ```commandline
