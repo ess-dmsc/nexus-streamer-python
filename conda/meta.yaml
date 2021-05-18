@@ -8,6 +8,7 @@ source:
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   noarch: python
+  script: python -m pip install --prefix={{ environ.get('PREFIX') }} --ignore-installed --no-deps -vv .
 
 requirements:
   run:
