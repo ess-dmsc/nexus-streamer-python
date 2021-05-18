@@ -8,12 +8,12 @@ This Python implementation is intended to replace a C++ implementation (https://
 
 Python 3.7 or higher is required. https://www.python.org/downloads/
 
-To install from source with setuptools do
+To install from PyPi do
 ```commandline
-python setup.py install
+pip install nexus-streamer
 ```
 
-or to install from conda do
+or to install with conda (does not work on Windows due to confluent-kafka package not supporting Windows)
 ```commandline
 conda install -c conda-forge -c ess-dmsc nexus-streamer
 ```
@@ -22,6 +22,7 @@ and check installation was successful by running
 ```commandline
 nexus_streamer --help
 ```
+on Windows you may need to add your Python environment's `Script` directory to `PATH` for the command to work.
 
 ## Usage
 ```commandline
