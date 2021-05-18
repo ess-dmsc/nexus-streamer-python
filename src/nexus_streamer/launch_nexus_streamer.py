@@ -1,4 +1,4 @@
-from .parse_commandline_args import parse_args, get_version
+from .parse_commandline_args import parse_args
 from .application_logger import setup_logger
 from .create_data_sources_from_nexus import (
     create_data_sources_from_nexus_file,
@@ -133,8 +133,7 @@ def launch_streamer():
         log_file_name=args.log_file,
         graylog_logger_address=args.graylog_logger_address,
     )
-    version = get_version()
-    logger.info(f"NeXus Streamer v{version} started")
+    logger.info("NeXus Streamer started")
     producer_config = {
         "bootstrap.servers": args.broker,
         "message.max.bytes": 200000000,

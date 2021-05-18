@@ -1,7 +1,5 @@
 import logging
 import configargparse
-import configparser
-from pathlib import Path
 
 
 class VersionArgParser(configargparse.ArgumentParser):
@@ -18,36 +16,7 @@ class VersionArgParser(configargparse.ArgumentParser):
         raise RuntimeError("Did not ask for --version")
 
 
-def get_version() -> str:
-    """
-    Gets the current version from the setup.cfg file
-    """
-    config = configparser.ConfigParser()
-    path = Path(__file__).parent.parent / "setup.cfg"
-    config.read(path)
-    return str(config["metadata"]["version"])
-
-
-def _print_version_if_requested():
-    version_arg_parser = VersionArgParser()
-    version_arg_parser.add_argument(
-        "--version",
-        required=True,
-        action="store_true",
-        help="Print application version and exit",
-        env_var="VERSION",
-    )
-    try:
-        version_arg_parser.parse_args()
-        print(get_version())
-        exit()
-    except RuntimeError:
-        pass
-
-
 def parse_args():
-    _print_version_if_requested()
-
     parser = configargparse.ArgumentParser(description="NeXus Streamer")
     parser.add_argument(
         "--version",

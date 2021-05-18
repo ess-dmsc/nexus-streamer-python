@@ -80,4 +80,4 @@ and login with the ESS-DMSC-ECDC PyPi account.
 
 Create a new release on the [releases page](https://github.com/ess-dmsc/nexus-streamer-python/releases). Add contents of [changes.md](changes.md) to the release notes.
 
-Commit a change to bump the version number in [setup.cfg](setup.cfg) and clean [changes.md](changes.md). 
+Commit a change to bump the version number in [src/nexus_streamer/__init__.py](src/nexus_streamer/__init__.py) and clean [changes.md](changes.md). 

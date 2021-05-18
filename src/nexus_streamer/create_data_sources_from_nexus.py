@@ -28,7 +28,7 @@ def find_by_nx_class(
                     groups_with_requested_nx_class[
                         get_attr_as_str(h5_object, "NX_class")
                     ].append(h5_object)
-            except AttributeError:
+            except KeyError:
                 pass
 
     root.visititems(_match_nx_class)
