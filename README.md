@@ -4,14 +4,33 @@ Streams event and metadata from a NeXus file into Kafka, mimicking data acquisit
 
 This Python implementation is intended to replace a C++ implementation (https://github.com/ess-dmsc/NeXus-Streamer) and should be much lower effort to maintain. The C++ implmentation is not yet obsolete; features missing from this implementation are documented in tickets.
 
-## Usage
+## Installation
+
+Python 3.7 or higher is required. https://www.python.org/downloads/
+
+To install from source with setuptools do
+```commandline
+python setup.py install
 ```
-usage: launch_nexus_streamer.py [-h] [--version]
-                                [--graylog-logger-address GRAYLOG_LOGGER_ADDRESS]
-                                [--log-file LOG_FILE] [-c CONFIG_FILE]
-                                [-v {Trace,Debug,Warning,Error,Critical}] -f
-                                FILENAME [--json-description JSON_DESCRIPTION]
-                                -b BROKER -i INSTRUMENT [-s] [-z]
+
+or to install from conda do
+```commandline
+conda install -c conda-forge -c ess-dmsc nexus-streamer
+```
+
+and check installation was successful by running
+```commandline
+nexus_streamer --help
+```
+
+## Usage
+```commandline
+usage: nexus_streamer [-h] [--version]
+                      [--graylog-logger-address GRAYLOG_LOGGER_ADDRESS]
+                      [--log-file LOG_FILE] [-c CONFIG_FILE]
+                      [-v {Trace,Debug,Warning,Error,Critical}] -f
+                      FILENAME [--json-description JSON_DESCRIPTION]
+                      -b BROKER -i INSTRUMENT [-s] [-z]
 
 NeXus Streamer Args that start with '--' (eg. --version) can also be set in a
 config file (specified via -c). Config file syntax allows: key=value,
@@ -50,34 +69,6 @@ optional arguments:
 
 ```
 
-## Installing dependencies
-
-Python 3.7 or higher is required. https://www.python.org/downloads/
-
-Runtime Python dependencies are listed in `requirements.txt` at the root of the
-repository. They can be installed from a terminal by running
-```
-pip install -r requirements.txt
-```
-
 ## Developer information
 
-### Development dependencies
-
-Development dependencies (including all runtime dependencies) can be installed by using the following command
-
-```
-pip install -r requirements-dev.txt
-```
-
-`black`, `flake8` and `mypy` can be used as a pre-commit hook (installed by [pre-commit](https://pre-commit.com/)).
-You need to run
-```
-pre-commit install
-```
-once to activate the pre-commit check.
-To test the hooks run
-```
-pre-commit run --all-files
-```
-This command can also be used to run the hooks manually.
+See [README-dev.md](README-dev.md)

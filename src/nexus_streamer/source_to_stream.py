@@ -1,8 +1,8 @@
 from time import time_ns
 import asyncio
-from nexus_streamer.data_source import EventDataSource, LogDataSource
+from .data_source import EventDataSource, LogDataSource
 from typing import Optional, Any, Union
-from nexus_streamer.kafka_producer import KafkaProducer
+from .kafka_producer import KafkaProducer
 from streaming_data_types.logdata_f142 import serialise_f142
 from streaming_data_types.eventdata_ev42 import serialise_ev42
 import numpy as np

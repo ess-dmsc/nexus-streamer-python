@@ -1,7 +1,7 @@
 import numpy as np
 import nexusformat.nexus as nexus
 import json
-from nexus_streamer.convert_units import ns_since_epoch_to_iso8601
+from .convert_units import ns_since_epoch_to_iso8601
 from typing import Tuple, Union
 
 

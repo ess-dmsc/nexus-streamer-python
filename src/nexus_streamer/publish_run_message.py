@@ -2,7 +2,7 @@ from streaming_data_types.run_start_pl72 import serialise_pl72
 from streaming_data_types.run_stop_6s4t import serialise_6s4t
 from uuid import uuid4
 from time import time_ns
-from nexus_streamer.kafka_producer import KafkaProducer
+from .kafka_producer import KafkaProducer
 
 
 def publish_run_start_message(
