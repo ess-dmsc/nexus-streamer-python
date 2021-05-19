@@ -111,7 +111,7 @@ class EventSourceToStream:
         self._publish_data: Optional[asyncio.Task[Any]] = None
         self._message_id = 0
         self._slow_mode = slow_mode
-        self._isis_data_source = None
+        self._isis_data_source = isis_data_source
 
     def start(self):
         self._cancelled = False

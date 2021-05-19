@@ -20,6 +20,7 @@ from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
+from .isis_data_source import IsisDataSource
 
 
 async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
@@ -69,6 +70,10 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 logger.critical("No valid data sources found in file, aborting")
                 return
 
+            isis_data_source = None
+            if args.isis_file:
+                isis_data_source = IsisDataSource(nexus_file)
+
             streamers.extend(
                 [
                     LogSourceToStream(
@@ -89,6 +94,7 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                         event_data_topic,
                         start_time_delta_ns,
                         slow_mode=args.slow,
+                        isis_data_source=isis_data_source,
                     )
                     for source in event_data_sources
                 ]
