@@ -140,6 +140,13 @@ def launch_streamer():
         graylog_logger_address=args.graylog_logger_address,
     )
     logger.info("NeXus Streamer started")
+
+    if args.isis_file and not args.det_spec_map:
+        logger.warning(
+            "ISIS file was specified but no detector-spectrum map was provided,"
+            "events may not be mapped to the correct detector pixel by consumer applications"
+        )
+
     producer_config = {
         "bootstrap.servers": args.broker,
         "message.max.bytes": 200000000,

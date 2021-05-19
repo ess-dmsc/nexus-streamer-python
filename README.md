@@ -69,6 +69,9 @@ optional arguments:
                         Generates this number of fake events per pulse
                         perevent data group instead of publishing real data
                         from file [env var: FAKE_EVENTS]
+  -d DET_SPEC_MAP, --det-spec-map DET_SPEC_MAP
+                        Full path of a detector-spectrum map file which may 
+                        be required for files from ISIS [env var: DET_SPEC_MAP]
 
 Args that start with '--' (eg. --graylog-logger-address) can also be set in a
 config file (specified via -c). Config file syntax allows: key=value,

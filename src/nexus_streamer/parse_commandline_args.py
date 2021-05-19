@@ -96,6 +96,12 @@ def parse_args():
         type=int,
         env_var="FAKE_EVENTS",
     )
+    parser.add_argument(
+        "-d",
+        "--det-spec-map",
+        help="Full path of a detector-spectrum map file which may be required for files from ISIS",
+        env_var="DET_SPEC_MAP",
+    )
 
     optargs = parser.parse_args()
     optargs.verbosity = log_choice_to_enum[optargs.verbosity]
