@@ -2,28 +2,8 @@ import logging
 import configargparse
 
 
-class VersionArgParser(configargparse.ArgumentParser):
-    def error(self, message: str):
-        """
-        Override the default implementation so nothing gets printed to screen
-        """
-        raise RuntimeError("Did not ask for --version")
-
-    def _print_message(self, message: str, file: None = None):
-        """
-        Override the default implementation so nothing gets printed to screen
-        """
-        raise RuntimeError("Did not ask for --version")
-
-
 def parse_args():
     parser = configargparse.ArgumentParser(description="NeXus Streamer")
-    parser.add_argument(
-        "--version",
-        action="store_true",
-        help="Print application version and exit",
-        env_var="VERSION",
-    )
     parser.add_argument(
         "--graylog-logger-address",
         required=False,
@@ -100,6 +80,14 @@ def parse_args():
         action="store_true",
         help="Publish only a single run (otherwise repeats until interrupted)",
         env_var="SINGLE_RUN",
+    )
+    parser.add_argument(
+        "-e",
+        "--fake-events-per-pulse",
+        help="Generates this number of fake events per pulse per"
+        "event data group instead of publishing real data from file",
+        type=int,
+        env_var="FAKE_EVENTS",
     )
 
     optargs = parser.parse_args()

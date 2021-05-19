@@ -1,6 +1,6 @@
 import h5py
-from typing import Union, Tuple, Dict, List
-from .data_source import EventDataSource
+from typing import Union, Tuple, Dict, List, Optional
+from .data_source import EventDataSource, FakeEventDataSource
 from .log_data_source import LogDataSource
 from .source_error import BadSource
 from .application_logger import get_logger
@@ -37,7 +37,8 @@ def find_by_nx_class(
 
 def create_data_sources_from_nexus_file(
     nexus_file: h5py.File,
-) -> Tuple[List[LogDataSource], List[EventDataSource]]:
+    fake_events_per_pulse: Optional[int],
+) -> Tuple[List[LogDataSource], List[Union[EventDataSource, FakeEventDataSource]]]:
     nx_log = "NXlog"
     nx_event_data = "NXevent_data"
     groups = find_by_nx_class((nx_log, nx_event_data), nexus_file)
@@ -50,10 +51,13 @@ def create_data_sources_from_nexus_file(
             # Reason for error is logged in source init
             pass
 
-    event_sources = []
+    event_sources: List[Union[EventDataSource, FakeEventDataSource]] = []
     for group in groups[nx_event_data]:
         try:
-            event_sources.append(EventDataSource(group))
+            if fake_events_per_pulse is not None:
+                event_sources.append(FakeEventDataSource(group, fake_events_per_pulse))
+            else:
+                event_sources.append(EventDataSource(group))
         except BadSource:
             # Reason for error is logged in source init
             pass

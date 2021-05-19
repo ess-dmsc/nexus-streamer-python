@@ -1,6 +1,6 @@
 from time import time_ns
 import asyncio
-from .data_source import EventDataSource, LogDataSource
+from .data_source import EventDataSource, LogDataSource, FakeEventDataSource
 from typing import Optional, Any, Union
 from .kafka_producer import KafkaProducer
 from streaming_data_types.logdata_f142 import serialise_f142
@@ -81,7 +81,7 @@ class LogSourceToStream:
 class EventSourceToStream:
     def __init__(
         self,
-        source: EventDataSource,
+        source: Union[EventDataSource, FakeEventDataSource],
         producer: KafkaProducer,
         output_topic: str,
         start_time_delta_ns: int,

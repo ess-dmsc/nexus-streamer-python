@@ -95,7 +95,7 @@ class EventDataSource:
         if self._has_missing_fields():
             raise BadSource()
         try:
-            self._convert_pulse_time = self._get_pulse_time_unit_converter()
+            self._convert_pulse_time = _get_pulse_time_unit_converter(group)
             self._convert_event_time = self._get_event_time_unit_converter()
         except UndefinedUnitError:
             self._logger.error(
@@ -171,13 +171,6 @@ class EventDataSource:
                 missing_field = True
         return missing_field
 
-    def _get_pulse_time_unit_converter(self) -> Callable:
-        try:
-            units = self._group["event_time_zero"].attrs["units"]
-        except AttributeError:
-            raise UndefinedUnitError
-        return get_to_nanoseconds_conversion_method(units)
-
     def _get_event_time_unit_converter(self) -> Callable:
         try:
             units = self._group["event_time_offset"].attrs["units"]
@@ -188,3 +181,59 @@ class EventDataSource:
     @property
     def name(self):
         return self._group.name.split("/")[-1]
+
+
+def _get_pulse_time_unit_converter(group: h5py.Group) -> Callable:
+    try:
+        units = group["event_time_zero"].attrs["units"]
+    except AttributeError:
+        raise UndefinedUnitError
+    return get_to_nanoseconds_conversion_method(units)
+
+
+class FakeEventDataSource:
+    def __init__(self, group: h5py.Group, events_per_pulse: int):
+        logger = get_logger()
+        try:
+            self._detector_ids = group.parent["detector_number"][...]
+        except KeyError:
+            logger.error(
+                "detector_number dataset not found in parent group of "
+                "NXevent_data, this must be present when using "
+                "--fake-events-per-pulse"
+            )
+            raise BadSource()
+        self._events_per_pulse = events_per_pulse
+
+        self._event_time_zero = group["event_time_zero"][...]
+        self._convert_pulse_time = _get_pulse_time_unit_converter(group)
+
+        self._pulse_time_offset_ns = _get_pulse_time_offset_in_ns(
+            group["event_time_zero"]
+        )
+        self._rng = np.random.default_rng(12345)
+
+        self.name = group.name.split("/")[-1]
+
+    def get_data(
+        self,
+    ) -> Generator[Tuple[Optional[np.ndarray], Optional[np.ndarray], int], None, None]:
+        """
+        Returns None instead of a data when there is no more data
+        """
+        for pulse_number in range(self._event_time_zero.size):
+            pulse_time = (
+                self._convert_pulse_time(self._event_time_zero[pulse_number])
+                + self._pulse_time_offset_ns
+            )
+
+            tofs = self._rng.integers(
+                low=10000, high=10000000, size=self._events_per_pulse
+            )
+            detector_num_indices = self._rng.integers(
+                low=0, high=self._detector_ids.size, size=self._events_per_pulse
+            )
+            ids = self._detector_ids[detector_num_indices]
+
+            yield tofs, ids, pulse_time
+        yield None, None, 0
