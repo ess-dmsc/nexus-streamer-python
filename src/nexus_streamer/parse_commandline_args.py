@@ -82,6 +82,13 @@ def parse_args():
         env_var="SINGLE_RUN",
     )
     parser.add_argument(
+        "--isis-file",
+        action="store_true",
+        help="Include ISIS-specific data in event data messages and "
+        "detector-spectrum map if found in file",
+        env_var="ISIS_FILE",
+    )
+    parser.add_argument(
         "-e",
         "--fake-events-per-pulse",
         help="Generates this number of fake events per pulse per"

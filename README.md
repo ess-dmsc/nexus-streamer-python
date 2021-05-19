@@ -31,7 +31,7 @@ usage: nexus_streamer [-h]
                       [--log-file LOG_FILE] [-c CONFIG_FILE]
                       [-v {Trace,Debug,Warning,Error,Critical}] -f
                       FILENAME [--json-description JSON_DESCRIPTION] -b
-                      BROKER -i INSTRUMENT [-s] [-z]
+                      BROKER -i INSTRUMENT [-s] [-z] [--isis-file]
                       [-e FAKE_EVENTS_PER_PULSE]
 
 NeXus Streamer
@@ -62,6 +62,9 @@ optional arguments:
                         timestamps from file) [env var: SLOW]
   -z, --single-run      Publish only a single run (otherwise repeats until
                         interrupted) [env var: SINGLE_RUN]
+  --isis-file           Include ISIS-specific data in event data messages and
+                        detector-spectrum map if found in file [env var:
+                        ISIS_FILE]
   -e FAKE_EVENTS_PER_PULSE, --fake-events-per-pulse FAKE_EVENTS_PER_PULSE
                         Generates this number of fake events per pulse
                         perevent data group instead of publishing real data
