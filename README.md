@@ -88,6 +88,8 @@ group containing a `start_time` dataset containing the run start time as an iso8
 `NXevent_data` and `NXlog` groups will be found wherever they are in the file and streamed to Kafka.
 All `time` and `value` datasets must have a `units` attribute.
 
+If `--fake-events-per-pulse` is used then each `NXevent_data` group must be in an
+`NXdetector` with a `detector_number` dataset.
 
 ## Developer information
 
