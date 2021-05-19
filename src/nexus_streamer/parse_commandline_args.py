@@ -81,6 +81,14 @@ def parse_args():
         help="Publish only a single run (otherwise repeats until interrupted)",
         env_var="SINGLE_RUN",
     )
+    parser.add_argument(
+        "-e",
+        "--fake-events-per-pulse",
+        help="Generates this number of fake events per pulse per"
+        "event data group instead of publishing real data from file",
+        type=int,
+        env_var="FAKE_EVENTS",
+    )
 
     optargs = parser.parse_args()
     optargs.verbosity = log_choice_to_enum[optargs.verbosity]
