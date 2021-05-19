@@ -62,7 +62,7 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
 
         with h5py.File(args.filename, "r") as nexus_file:
             log_data_sources, event_data_sources = create_data_sources_from_nexus_file(
-                nexus_file
+                nexus_file, args.fake_events_per_pulse
             )
 
             if not log_data_sources and not event_data_sources:

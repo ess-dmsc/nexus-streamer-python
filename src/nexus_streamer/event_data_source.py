@@ -213,6 +213,8 @@ class FakeEventDataSource:
         )
         self._rng = np.random.default_rng(12345)
 
+        self.name = group.name.split("/")[-1]
+
     def get_data(
         self,
     ) -> Generator[Tuple[Optional[np.ndarray], Optional[np.ndarray], int], None, None]:
