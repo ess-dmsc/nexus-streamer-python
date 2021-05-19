@@ -23,6 +23,14 @@ pre-commit run --all-files
 ```
 This command can also be used to run the hooks manually.
 
+## Run from source
+
+[src/run_nexus_streamer.py](src/run_nexus_streamer.py) can be used to run the application from source.
+For example
+```commandline
+python src/run_nexus_streamer.py --help
+```
+
 ## Release process
 
 Commit a change to bump the version number in [src/nexus_streamer/__init__.py](src/nexus_streamer/__init__.py).
