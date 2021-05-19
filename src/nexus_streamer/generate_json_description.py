@@ -5,6 +5,19 @@ from .convert_units import ns_since_epoch_to_iso8601
 from typing import Tuple, Union
 
 
+# These datasets are always truncated, this avoids JSON descriptions
+# of ISIS files in particular from becoming huge
+_always_truncate_list = (
+    "event_id",
+    "event_index",
+    "event_time_bins",
+    "event_time_offset",
+    "event_time_zero",
+    "event_frame_number",
+    "counts",
+)
+
+
 class NexusToDictConverter:
     """
     Class used to convert nexus format root to python dict
@@ -48,24 +61,29 @@ class NexusToDictConverter:
             root_dict = {}
         return root_dict
 
-    def truncate_if_large(self, size, data):
+    def truncate_if_large(self, size, data, name: str):
         if self.truncate_large_datasets:
-            size = list(size)
-            for dim_number, dim_size in enumerate(size):
-                if dim_size > self.large:
-                    size[dim_number] = self.large
-            data_copy = np.copy(data[...])
-            data_copy.resize(size)
-            return data_copy
+            return self.truncate(data, size)
+        if name in _always_truncate_list:
+            return self.truncate(data, size)
         return data
 
-    def _get_data_and_type(self, root):
+    def truncate(self, data, size):
+        size = list(size)
+        for dim_number, dim_size in enumerate(size):
+            if dim_size > self.large:
+                size[dim_number] = self.large
+        data_copy = np.copy(data[...])
+        data_copy.resize(size)
+        return data_copy
+
+    def _get_data_and_type(self, root, name: str):
         size: Union[int, Tuple[int, ...]] = 1
         data = root.nxdata
         dtype = str(root.dtype)
         if isinstance(data, np.ndarray):
             size = data.shape
-            data = self.truncate_if_large(size, data)
+            data = self.truncate_if_large(size, data, name)
             if dtype[:2] == "|S":
                 data = np.char.decode(data)
             data = data.tolist()
@@ -93,7 +111,7 @@ class NexusToDictConverter:
                 root_dict["attributes"] = []
             root_dict["attributes"] = []
             for attr_name, attr in root.attrs.items():
-                data, dtype, size = self._get_data_and_type(attr)
+                data, dtype, size = self._get_data_and_type(attr, attr_name)
                 new_attribute = {"name": attr_name, "values": data}
                 if dtype != "object":
                     new_attribute["type"] = dtype
@@ -165,7 +183,7 @@ class NexusToDictConverter:
         return is_stream
 
     def _handle_dataset(self, root):
-        data, dataset_type, size = self._get_data_and_type(root)
+        data, dataset_type, size = self._get_data_and_type(root, root.nxname)
         root_dict = {
             "type": "dataset",
             "name": root.nxname,
