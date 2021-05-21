@@ -21,6 +21,7 @@ from typing import List
 import asyncio
 from time import time_ns
 from .isis_data_source import IsisDataSource
+from .read_detector_spectrum_map_file import read_map
 
 
 async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
@@ -52,6 +53,11 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 run_start_ds_path,
             )
 
+        map_det_ids = None
+        map_spec_nums = None
+        if args.det_spec_map is not None:
+            map_det_ids, map_spec_nums = read_map(args.det_spec_map)
+
         job_id = publish_run_start_message(
             args.instrument,
             run_id,
@@ -59,6 +65,8 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
             nexus_structure,
             producer,
             f"{args.instrument}_runInfo",
+            map_det_ids,
+            map_spec_nums,
         )
 
         with h5py.File(args.filename, "r") as nexus_file:
