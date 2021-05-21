@@ -20,6 +20,8 @@ from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
+from .isis_data_source import IsisDataSource
+from .read_detector_spectrum_map_file import read_map
 
 
 async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
@@ -51,6 +53,11 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 run_start_ds_path,
             )
 
+        map_det_ids = None
+        map_spec_nums = None
+        if args.det_spec_map is not None:
+            map_det_ids, map_spec_nums = read_map(args.det_spec_map)
+
         job_id = publish_run_start_message(
             args.instrument,
             run_id,
@@ -58,6 +65,8 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
             nexus_structure,
             producer,
             f"{args.instrument}_runInfo",
+            map_det_ids,
+            map_spec_nums,
         )
 
         with h5py.File(args.filename, "r") as nexus_file:
@@ -68,6 +77,10 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
             if not log_data_sources and not event_data_sources:
                 logger.critical("No valid data sources found in file, aborting")
                 return
+
+            isis_data_source = None
+            if args.isis_file:
+                isis_data_source = IsisDataSource(nexus_file)
 
             streamers.extend(
                 [
@@ -89,6 +102,7 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                         event_data_topic,
                         start_time_delta_ns,
                         slow_mode=args.slow,
+                        isis_data_source=isis_data_source,
                     )
                     for source in event_data_sources
                 ]
@@ -134,6 +148,13 @@ def launch_streamer():
         graylog_logger_address=args.graylog_logger_address,
     )
     logger.info("NeXus Streamer started")
+
+    if args.isis_file and not args.det_spec_map:
+        logger.warning(
+            "ISIS file was specified but no detector-spectrum map was provided,"
+            "events may not be mapped to the correct detector pixel by consumer applications"
+        )
+
     producer_config = {
         "bootstrap.servers": args.broker,
         "message.max.bytes": 200000000,
