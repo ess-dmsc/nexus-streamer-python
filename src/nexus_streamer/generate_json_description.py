@@ -173,6 +173,10 @@ class NexusToDictConverter:
                     stream_info["dtype"] = self._get_dtype(root.entries["raw_value"])
                 except KeyError:
                     is_stream = False
+            try:
+                stream_info["unit"] = root.attrs["units"]
+            except KeyError:
+                pass
         elif isinstance(root, nexus.NXevent_data):
             stream_info["writer_module"] = "ev42"
             stream_info["topic"] = self._event_data_topic
