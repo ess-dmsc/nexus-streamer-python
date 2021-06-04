@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import nexusformat.nexus as nexus
 import json
@@ -95,6 +96,13 @@ class NexusToDictConverter:
             dtype = "double"
         elif dtype == "float32":
             dtype = "float"
+        elif dtype == "object":
+            if not isinstance(data, list):
+                try:
+                    data = data.decode("utf-8")
+                except AttributeError:
+                    pass  # already str
+            dtype = "string"
         return data, dtype, size
 
     @staticmethod
@@ -239,3 +247,17 @@ def nexus_file_to_json_description(
     )
 
     return json.dumps(tree, indent=2, sort_keys=False)
+
+
+# For convenience of testing during development
+# Run from src/ dir with:
+# python3 -m nexus_streamer.generate_json_description
+if __name__ == "__main__":
+    filename = "/home/matt/git/nexus-streamer-python/test_data/mcstas_epoc_v2.nxs"
+
+    json_string = nexus_file_to_json_description(
+        filename, "INST_events", "INST_sampleEnv", time.time_ns(), ""
+    )
+
+    with open("someting.txt", "w") as json_file:
+        json_file.write(json_string)
