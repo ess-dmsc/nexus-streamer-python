@@ -253,11 +253,11 @@ def nexus_file_to_json_description(
 # Run from src/ dir with:
 # python3 -m nexus_streamer.generate_json_description
 if __name__ == "__main__":
-    filename = "/home/matt/git/nexus-streamer-python/test_data/mcstas_epoc_v2.nxs"
+    filename = "example.nxs"
 
     json_string = nexus_file_to_json_description(
         filename, "INST_events", "INST_sampleEnv", time.time_ns(), ""
     )
 
-    with open("someting.txt", "w") as json_file:
+    with open("output.json", "w") as json_file:
         json_file.write(json_string)
