@@ -136,6 +136,14 @@ class EventDataSource:
             self._group["event_time_zero"]
         )
 
+    @property
+    def final_timestamp(self) -> int:
+        # Last pulse time is good enough, we won't try to find the last event in the last pulse
+        return (
+            self._convert_pulse_time(self._event_time_zero[-1])
+            + self._pulse_time_offset_ns
+        )
+
     def get_data(
         self,
     ) -> Generator[Tuple[Optional[np.ndarray], Optional[np.ndarray], int], None, None]:
@@ -214,6 +222,14 @@ class FakeEventDataSource:
         self._rng = np.random.default_rng(12345)
 
         self.name = group.name.split("/")[-1]
+
+    @property
+    def final_timestamp(self) -> int:
+        # Last pulse time is good enough, we won't try to find the last event in the last pulse
+        return (
+            self._convert_pulse_time(self._event_time_zero[-1])
+            + self._pulse_time_offset_ns
+        )
 
     def get_data(
         self,
