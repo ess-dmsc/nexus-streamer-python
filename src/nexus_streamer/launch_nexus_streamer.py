@@ -94,11 +94,14 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
             )
 
             # The last timestamp will be the stop time for the run
-            stop_time_ns = max(
-                [
-                    source.final_timestamp
-                    for source in event_data_sources + log_data_sources  # type: ignore
-                ]
+            stop_time_ns = (
+                max(
+                    [
+                        source.final_timestamp
+                        for source in event_data_sources + log_data_sources  # type: ignore
+                    ]
+                )
+                + start_time_delta_ns
             )
 
             publish_run_start_message(
