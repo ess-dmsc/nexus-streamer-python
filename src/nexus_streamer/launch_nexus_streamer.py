@@ -10,11 +10,7 @@ from .source_to_stream import (
     EventSourceToStream,
     SourceToStream,
 )
-from .publish_run_message import (
-    publish_run_start_message,
-    publish_run_stop_message,
-)
-
+from .publish_run_message import publish_run_start_message
 from .generate_json_description import nexus_file_to_json_description
 from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
@@ -58,17 +54,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
         if args.det_spec_map is not None:
             map_det_ids, map_spec_nums = read_map(args.det_spec_map)
 
-        job_id = publish_run_start_message(
-            args.instrument,
-            run_id,
-            args.broker,
-            nexus_structure,
-            producer,
-            f"{args.instrument}_runInfo",
-            map_det_ids,
-            map_spec_nums,
-        )
-
         with h5py.File(args.filename, "r") as nexus_file:
             log_data_sources, event_data_sources = create_data_sources_from_nexus_file(
                 nexus_file, args.fake_events_per_pulse
@@ -108,6 +93,26 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 ]
             )
 
+            # The last timestamp will be the stop time for the run
+            stop_time_ns = max(
+                [
+                    source.final_timestamp
+                    for source in event_data_sources + log_data_sources  # type: ignore
+                ]
+            )
+
+            publish_run_start_message(
+                args.instrument,
+                run_id,
+                args.broker,
+                nexus_structure,
+                producer,
+                f"{args.instrument}_runInfo",
+                map_det_ids,
+                map_spec_nums,
+                stop_time_ns,
+            )
+
             logger.info(
                 f"Publishing log data sources: {[source.name for source in log_data_sources]}"
             )
@@ -121,7 +126,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 await asyncio.sleep(1.0)
 
             logger.info("Reached end of data sources")
-        publish_run_stop_message(job_id, producer, f"{args.instrument}_runInfo")
 
     except KeyboardInterrupt:
         logger.info("%% Aborted by user")
