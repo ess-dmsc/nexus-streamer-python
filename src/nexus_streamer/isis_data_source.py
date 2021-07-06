@@ -32,6 +32,13 @@ class IsisDataSource:
             logger, nexus_file, "raw_data_1/framelog/period_log/value", "period_log"
         )
 
+    @property
+    def final_timestamp(self) -> int:
+        # We don't need the final timestamp from these data as they are
+        # published for each pulse, we will get the final pulse time
+        # from the event data source instead
+        return 0
+
     def get_data(
         self,
     ) -> Generator[Dict, None, None]:

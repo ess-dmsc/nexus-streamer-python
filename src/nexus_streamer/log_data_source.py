@@ -68,6 +68,10 @@ class LogDataSource:
             )
             raise BadSource()
 
+    @property
+    def final_timestamp(self) -> int:
+        return self._convert_time(self._time_dataset[-1]) + self._time_offset_ns
+
     def get_data(self) -> Generator[Tuple[Optional[np.ndarray], int], None, None]:
         """
         Returns None instead of data when there are no more data
