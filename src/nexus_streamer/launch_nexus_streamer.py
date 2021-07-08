@@ -57,6 +57,7 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                 streamer_start_time = time_ns()
                 start_time_delta_ns = streamer_start_time - recorded_run_start_time_ns
                 stop_time_ns = last_timestamp + start_time_delta_ns
+                run_duration = stop_time_ns - streamer_start_time
             else:
                 # If we are publishing data into Kafka as fast as we can then we
                 # must pretend the run has already happened. Make the current wall
