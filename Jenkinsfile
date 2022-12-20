@@ -53,7 +53,8 @@ builders = pipeline_builder.createBuilders { container ->
 
   pipeline_builder.stage("${container.key}: Static Analysis (flake8) ") {
     container.sh """
-      export PATH=/opt/miniconda/bin:$PATH
+      which python
+      python --version
       cd ${pipeline_builder.project}
       python -m flake8
     """
