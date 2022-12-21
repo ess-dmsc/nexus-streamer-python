@@ -5,7 +5,7 @@ import ecdcpipeline.PipelineBuilder
 project = "nexus-streamer-python"
 
 container_build_nodes = [
-  'centos7': ContainerBuildNode.getDefaultContainerBuildNode('centos7-gcc8')
+  'centos7': ContainerBuildNode.getDefaultContainerBuildNode('centos7-gcc11')
 ]
 
 // Define number of old builds to keep.
