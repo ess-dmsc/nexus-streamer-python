@@ -1,6 +1,5 @@
 # Development requirements
 
-configargparse
 pre-commit
 pytest
 pytest-cov
