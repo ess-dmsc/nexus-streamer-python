@@ -165,7 +165,7 @@ class NexusToDictConverter:
         stream_info = {}
         is_stream = False
         if isinstance(root, nexus.NXlog):
-            stream_info["writer_module"] = "f142"
+            stream_info["writer_module"] = "f144"
             is_stream = True
             if root.nxname == "value_log":
                 # For ISIS files the parent of the NXlog has a more useful name
@@ -186,7 +186,7 @@ class NexusToDictConverter:
             except KeyError:
                 pass
         elif isinstance(root, nexus.NXevent_data):
-            stream_info["writer_module"] = "ev42"
+            stream_info["writer_module"] = "ev44"
             stream_info["topic"] = self._event_data_topic
             stream_info["source"] = "NeXus-Streamer"
             is_stream = True

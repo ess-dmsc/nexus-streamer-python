@@ -4,7 +4,6 @@ from .data_source import (
     EventDataSource,
     LogDataSource,
     FakeEventDataSource,
-    IsisDataSource,
 )
 from typing import Optional, Any, Union
 from .kafka_producer import KafkaProducer
