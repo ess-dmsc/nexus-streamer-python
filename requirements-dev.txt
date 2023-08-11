@@ -8,4 +8,4 @@ twine
 # Pin to match versions in precommit hooks
 black==22.6.0
 flake8==3.8.4
-mypy==v0.790
+mypy
