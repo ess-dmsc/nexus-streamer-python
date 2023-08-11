@@ -8,8 +8,8 @@ from .data_source import (
 )
 from typing import Optional, Any, Union
 from .kafka_producer import KafkaProducer
-from streaming_data_types.logdata_f142 import serialise_f142
-from streaming_data_types.eventdata_ev42 import serialise_ev42
+from streaming_data_types.logdata_f144 import serialise_f144
+from streaming_data_types.eventdata_ev44 import serialise_ev44
 import numpy as np
 
 
@@ -67,9 +67,9 @@ class LogSourceToStream:
                     if data_timestamp_ns < 0:
                         continue
                     last_timestamp_ns = data_timestamp_ns + self._start_time_delta_ns
-                    payload = serialise_f142(
-                        value,
+                    payload = serialise_f144(
                         self._source_name,
+                        value,
                         last_timestamp_ns,
                     )
                     self._producer.produce(
@@ -92,7 +92,6 @@ class EventSourceToStream:
         start_time_delta_ns: int,
         interval_s: float = 0.2,
         slow_mode: bool = False,
-        isis_data_source: Optional[IsisDataSource] = None,
     ):
         """
         :param source: event data source
@@ -111,7 +110,6 @@ class EventSourceToStream:
         self._publish_data: Optional[asyncio.Task[Any]] = None
         self._message_id = 0
         self._slow_mode = slow_mode
-        self._isis_data_source = isis_data_source
 
     def start(self):
         self._cancelled = False
@@ -130,26 +128,21 @@ class EventSourceToStream:
     async def _publish_loop(self):
         last_timestamp_ns = 0
         get_data = self._data_source.get_data()
-        if self._isis_data_source is not None:
-            get_isis_data = self._isis_data_source.get_data()
         current_run_time_ns = np.iinfo(np.int64).max
-        isis_data = None
         while not self._cancelled:
             if self._slow_mode:
                 current_run_time_ns = time_ns()
             while last_timestamp_ns < current_run_time_ns:
                 time_of_flight, detector_id, data_timestamp_ns = next(get_data)
-                if self._isis_data_source is not None:
-                    isis_data = next(get_isis_data)
                 if time_of_flight is not None:
                     last_timestamp_ns = data_timestamp_ns + self._start_time_delta_ns
-                    payload = serialise_ev42(
+                    payload = serialise_ev44(
                         self._source_name,
                         self._message_id,
-                        last_timestamp_ns,
+                        [last_timestamp_ns],
+                        [0],
                         time_of_flight,
                         detector_id,
-                        isis_specific=isis_data,
                     )
                     self._producer.produce(
                         self._topic,

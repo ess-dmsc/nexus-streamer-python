@@ -16,7 +16,6 @@ from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
-from .isis_data_source import IsisDataSource
 from .read_detector_spectrum_map_file import read_map
 from .convert_units import ns_since_epoch_to_iso8601
 
@@ -32,10 +31,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
             if not log_data_sources and not event_data_sources:
                 logger.critical("No valid data sources found in file, aborting")
                 return
-
-            isis_data_source = None
-            if args.isis_file:
-                isis_data_source = IsisDataSource(nexus_file)
 
             last_timestamp = max(
                 [
@@ -113,7 +108,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
                         event_data_topic,
                         start_time_delta_ns,
                         slow_mode=args.slow,
-                        isis_data_source=isis_data_source,
                     )
                     for source in event_data_sources
                 ]
@@ -175,12 +169,6 @@ def launch_streamer():
         graylog_logger_address=args.graylog_logger_address,
     )
     logger.info("NeXus Streamer started")
-
-    if args.isis_file and not args.det_spec_map:
-        logger.warning(
-            "ISIS file was specified but no detector-spectrum map was provided,"
-            "events may not be mapped to the correct detector pixel by consumer applications"
-        )
 
     producer_config = {
         "bootstrap.servers": args.broker,
