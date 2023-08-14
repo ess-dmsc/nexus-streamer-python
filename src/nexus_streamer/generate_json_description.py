@@ -245,8 +245,8 @@ def nexus_file_to_json_description(
     _replace_old_start_time_with_streamer_start_time(
         new_run_start_ns, run_start_dataset_path, tree
     )
-
-    return json.dumps(tree, indent=2, sort_keys=False)
+    # Remove whitespace to try to keep the size down
+    return json.dumps(tree, separators=(',', ':'), sort_keys=False)
 
 
 # For convenience of testing during development
