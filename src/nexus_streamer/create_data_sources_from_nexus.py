@@ -81,7 +81,7 @@ def get_recorded_run_start_time_ns(filename: str) -> Tuple[int, str]:
         for entry_group in entry_groups[nx_entry_class]:
             try:
                 start_time_dataset = entry_group["start_time"]
-                found_start_time_ns = iso8601_to_ns_since_epoch(start_time_dataset[...])
+                found_start_time_ns = iso8601_to_ns_since_epoch(start_time_dataset[()])
                 if run_start_time_ns is None or found_start_time_ns < run_start_time_ns:
                     run_start_time_ns = found_start_time_ns
                     run_start_dataset_path = start_time_dataset.name
