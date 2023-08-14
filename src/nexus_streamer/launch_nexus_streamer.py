@@ -16,7 +16,6 @@ from .create_data_sources_from_nexus import get_recorded_run_start_time_ns
 from typing import List
 import asyncio
 from time import time_ns
-from .read_detector_spectrum_map_file import read_map
 from .convert_units import ns_since_epoch_to_iso8601
 
 
@@ -115,8 +114,6 @@ async def publish_run(producer: KafkaProducer, run_id: int, args, logger):
 
             map_det_ids = None
             map_spec_nums = None
-            if args.det_spec_map is not None:
-                map_det_ids, map_spec_nums = read_map(args.det_spec_map)
             publish_run_start_message(
                 args.instrument,
                 run_id,
@@ -172,7 +169,7 @@ def launch_streamer():
 
     producer_config = {
         "bootstrap.servers": args.broker,
-        "message.max.bytes": 200000000,
+        "message.max.bytes": 1_000_000_000,  # Confluent Kafka lib tops out a 1 GB
     }
     kafka_producer = KafkaProducer(producer_config)
     run_number = 0
